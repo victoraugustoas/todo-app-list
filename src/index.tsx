@@ -1,13 +1,15 @@
 import React from 'react';
 import {SafeAreaView} from 'react-native';
+import {CardTask} from './components/CardTask';
 import {Header} from './components/Header';
 
-const App = () => {
+const AppContainer: React.FC = () => {
   return (
     <SafeAreaView>
       <Header />
+      <CardTask />
     </SafeAreaView>
   );
 };
 
-export default App;
+export {AppContainer};
