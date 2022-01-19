@@ -1,0 +1,40 @@
+import React from 'react';
+import {StyleSheet, TouchableOpacity, View} from 'react-native';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
+import Icon from 'react-native-vector-icons/Feather';
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: widthPercentageToDP(4),
+    marginVertical: widthPercentageToDP(6),
+  },
+  icon: {fontSize: widthPercentageToDP(6)},
+  rightIcons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: widthPercentageToDP(15),
+  },
+});
+
+const Header: React.FC = () => {
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity>
+        <Icon name="menu" style={styles.icon} />
+      </TouchableOpacity>
+
+      <View style={styles.rightIcons}>
+        <TouchableOpacity>
+          <Icon name="search" style={styles.icon} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Icon name="bell" style={styles.icon} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+export {Header};
