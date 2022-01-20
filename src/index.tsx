@@ -7,7 +7,10 @@ const AppContainer: React.FC = () => {
   return (
     <SafeAreaView>
       <Header />
-      <CardTask />
+      <CardTask title="Tarefa 01 do dia D" />
+      <CardTask title="Create the app" />
+      <CardTask title="daily meeting with team" selected={true} />
+      <CardTask title="daily meeting with team" />
     </SafeAreaView>
   );
 };
