@@ -1,6 +1,11 @@
 import {MotiView} from 'moti';
 import React, {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  TouchableOpacityProps,
+  View,
+} from 'react-native';
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -37,7 +42,13 @@ const styles = StyleSheet.create({
     borderRadius: widthPercentageToDP(6.8) / 2,
   },
   title: {fontSize: widthPercentageToDP(7.6), color: 'rgb(157, 154, 180)'},
-  container: {flexDirection: 'row'},
+  container: {
+    flexDirection: 'row',
+    borderRadius: widthPercentageToDP(5),
+    backgroundColor: '#fff',
+    paddingHorizontal: widthPercentageToDP(3),
+    paddingVertical: widthPercentageToDP(4.6),
+  },
   titleContainer: {flex: 6, flexDirection: 'row'},
   markCompleted: {
     flexDirection: 'row',
@@ -57,12 +68,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export interface CardTaskProps {
+export interface CardTaskProps extends TouchableOpacityProps {
   title: string;
   selected?: boolean;
 }
 
-const CardTask: React.FC<CardTaskProps> = ({title, selected}) => {
+const CardTask: React.FC<CardTaskProps> = ({title, selected, ...props}) => {
   const [totalTextWidth, setTotalTextWidth] = useState(0);
 
   const animateColor = useDerivedValue(() => {
@@ -87,7 +98,7 @@ const CardTask: React.FC<CardTaskProps> = ({title, selected}) => {
   });
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity {...props} style={[props.style, styles.container]}>
       <View style={styles.bubbleContainer}>
         <Animated.View style={[styles.bubble, selectedBubble]}>
           <MotiView
@@ -119,7 +130,7 @@ const CardTask: React.FC<CardTaskProps> = ({title, selected}) => {
           <Typography style={styles.title}>{title}</Typography>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
