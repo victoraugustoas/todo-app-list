@@ -1,20 +1,24 @@
-import {MotiView} from 'moti';
-import React, {useState} from 'react';
+import React from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
   TouchableOpacityProps,
-  View,
 } from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
-  interpolateColor,
+  Layout,
+  runOnJS,
+  SlideInLeft,
   useAnimatedStyle,
-  useDerivedValue,
+  useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import Icon from 'react-native-vector-icons/Feather';
-import {Typography} from '../Typography';
+import {
+  heightPercentageToDP,
+  widthPercentageToDP,
+} from 'react-native-responsive-screen';
+import {Task} from './Task';
 
 const styles = StyleSheet.create({
   bubbleContainer: {
@@ -71,65 +75,77 @@ const styles = StyleSheet.create({
 export interface CardTaskProps extends TouchableOpacityProps {
   title: string;
   selected?: boolean;
+  onDimiss?: () => void;
 }
 
-const CardTask: React.FC<CardTaskProps> = ({title, selected, ...props}) => {
-  const [totalTextWidth, setTotalTextWidth] = useState(0);
+const CardTask: React.FC<CardTaskProps> = ({
+  title,
+  selected,
+  onDimiss,
+  ...props
+}) => {
+  const offsetX = useSharedValue(0);
+  const heightCard = useSharedValue(100);
+  const margin = useSharedValue(heightPercentageToDP(1));
 
-  const animateColor = useDerivedValue(() => {
-    if (selected) {
-      return withTiming(1, {duration: 450});
-    } else {
-      return withTiming(0, {duration: 450});
-    }
-  });
+  function onClose() {
+    const exitTime = 225;
+    const heightTime = 350;
 
-  const selectedBubble = useAnimatedStyle(() => {
-    const color = interpolateColor(
-      animateColor.value,
-      [0, 1],
-      ['rgba(221, 12, 241,1)', '#ccc'],
+    offsetX.value = withTiming(
+      -widthPercentageToDP(100),
+      {duration: exitTime},
+      () => {
+        heightCard.value = withTiming(0, {duration: heightTime});
+        margin.value = withTiming(0);
+      },
     );
 
-    return {
-      backgroundColor: color,
-      borderColor: color,
-    };
-  });
+    setTimeout(() => {
+      onDimiss && onDimiss();
+    }, exitTime + heightTime);
+  }
+
+  const dragGesture = Gesture.Pan()
+    .onUpdate(e => {
+      offsetX.value = e.translationX;
+    })
+    .onEnd(e => {
+      if (Math.abs(e.velocityX) > 1500 && e.velocityX < 0 && onDimiss) {
+        runOnJS(onClose)();
+      } else {
+        offsetX.value = 0;
+      }
+    });
+
+  const swipeToDimiss = useAnimatedStyle(() => ({
+    transform: [{translateX: withSpring(offsetX.value)}],
+    height: heightCard.value,
+    marginVertical: margin.value,
+  }));
 
   return (
-    <TouchableOpacity {...props} style={[props.style, styles.container]}>
-      <View style={styles.bubbleContainer}>
-        <Animated.View style={[styles.bubble, selectedBubble]}>
-          <MotiView
-            style={styles.animatedBubble}
-            animate={{scale: selected ? 0 : 1}}
-            transition={{type: 'timing'}}
-          />
-          <MotiView
-            style={{position: 'absolute'}}
-            animate={{translateX: selected ? 0 : -20}}
-            transition={{type: 'timing', duration: 225}}>
-            <Icon name="check" style={styles.icon} />
-          </MotiView>
-        </Animated.View>
-      </View>
-      <View style={styles.titleContainer}>
-        <View
-          style={styles.markCompleted}
-          onLayout={({nativeEvent}) =>
-            setTotalTextWidth(nativeEvent.layout.width)
-          }>
-          <MotiView
-            style={styles.riskCompletedText}
-            animate={{
-              width: selected ? totalTextWidth + widthPercentageToDP(4) : 0,
+    <TouchableOpacity {...props}>
+      <GestureDetector gesture={dragGesture}>
+        <Animated.View
+          entering={SlideInLeft}
+          layout={Layout.springify()}
+          style={swipeToDimiss}>
+          <Task
+            selected={selected}
+            title={title}
+            onLayout={({nativeEvent}) => {
+              if (heightCard.value === 100) {
+                console.log(
+                  '🚀 ~ file: index.tsx ~ line 134 ~ nativeEvent',
+                  nativeEvent,
+                );
+                heightCard.value = nativeEvent.layout.height;
+              }
             }}
-            transition={{type: 'timing'}}
           />
-          <Typography style={styles.title}>{title}</Typography>
-        </View>
-      </View>
+        </Animated.View>
+      </GestureDetector>
     </TouchableOpacity>
   );
 };
