@@ -14,6 +14,8 @@ const AppContainer: React.FC = () => {
     {id: 4, title: 'daily meeting with team'},
   ]);
 
+  const [selectedTask, setSelectedTasks] = useState<number[]>([]);
+
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <SafeAreaView style={{backgroundColor: '#F4F6FD', flex: 1}}>
@@ -25,7 +27,22 @@ const AppContainer: React.FC = () => {
                 style={{marginVertical: widthPercentageToDP(1.2)}}
                 key={task.id}
                 title={task.title}
-                onPress={() => console.log('oi')}
+                selected={selectedTask.some(selected => selected === idx)}
+                onPress={() =>
+                  setSelectedTasks(oldState => {
+                    const oldStateCopy = [...oldState];
+                    const selectedIdx = oldStateCopy.findIndex(
+                      selected => selected === idx,
+                    );
+                    if (selectedIdx > -1) {
+                      oldStateCopy.splice(selectedIdx, 1);
+                    } else {
+                      oldStateCopy.push(idx);
+                    }
+
+                    return oldStateCopy;
+                  })
+                }
                 onDimiss={() => {
                   setTasks(oldState => {
                     const copyOldState = [...oldState];
