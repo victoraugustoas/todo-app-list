@@ -1,7 +1,8 @@
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, View, ViewProps} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
+  FadeOut,
   interpolate,
   Layout,
   runOnJS,
@@ -11,10 +12,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from 'react-native-responsive-screen';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {Task} from './Task';
 import {UndoAction} from './UndoAction';
 
@@ -68,13 +66,19 @@ const styles = StyleSheet.create({
     fontSize: widthPercentageToDP(4.6),
     color: '#fff',
   },
+  undoAction: {
+    position: 'absolute',
+    width: '100%',
+    zIndex: -1,
+  },
 });
 
-export interface CardTaskProps {
+export interface CardTaskProps extends ViewProps {
   title: string;
   selected?: boolean;
   onDimiss?: () => void;
   onPress?: () => void;
+  timeoutToClose?: number;
 }
 
 const CardTask: React.FC<CardTaskProps> = ({
@@ -82,24 +86,18 @@ const CardTask: React.FC<CardTaskProps> = ({
   selected,
   onDimiss,
   onPress,
+  timeoutToClose = 3000,
+  ...props
 }) => {
   const offsetX = useSharedValue(0);
-  const heightCard = useSharedValue(100);
-  const margin = useSharedValue(heightPercentageToDP(1));
   const totalOffsetX = -widthPercentageToDP(100);
+  const [wantToclose, setWantToClose] = useState(false);
 
   function onClose() {
     const exitTime = 225;
-    const heightTime = 350;
 
-    offsetX.value = withTiming(totalOffsetX, {duration: exitTime}, () => {
-      heightCard.value = withTiming(0, {duration: heightTime});
-      margin.value = withTiming(0);
-    });
-
-    // setTimeout(() => {
-    //   onDimiss && onDimiss();
-    // }, exitTime + heightTime);
+    offsetX.value = withTiming(totalOffsetX, {duration: exitTime});
+    setWantToClose(true);
   }
 
   const dragGesture = Gesture.Pan()
@@ -114,41 +112,50 @@ const CardTask: React.FC<CardTaskProps> = ({
       }
     });
   const tap = Gesture.Tap().onStart(() => {
-    onPress && onPress();
+    onPress && runOnJS(onPress)();
   });
   const gesture = Gesture.Race(dragGesture, tap);
 
   const swipeToDimiss = useAnimatedStyle(() => ({
     transform: [{translateX: withSpring(offsetX.value)}],
     opacity: interpolate(offsetX.value, [0, totalOffsetX], [1, 0]),
-    height: heightCard.value,
-    marginVertical: margin.value,
   }));
-  const undoAction = useAnimatedStyle(() => ({
+  const undoActionAnim = useAnimatedStyle(() => ({
     opacity: interpolate(offsetX.value, [0, totalOffsetX], [0, 1]),
-    display: offsetX.value === totalOffsetX ? 'flex' : 'none',
   }));
 
+  useEffect(() => {
+    let timeoutToDimiss: NodeJS.Timeout | null = null;
+    if (wantToclose) {
+      timeoutToDimiss = setTimeout(() => {
+        onDimiss && onDimiss();
+      }, timeoutToClose);
+    }
+    return () => {
+      if (timeoutToDimiss) clearTimeout(timeoutToDimiss);
+    };
+  }, [wantToclose]);
+
   return (
-    <View>
+    <View {...props} style={[props.style, {position: 'relative'}]}>
       <GestureDetector gesture={gesture}>
         <Animated.View
           entering={SlideInLeft}
-          layout={Layout.springify()}
+          layout={Layout}
           style={swipeToDimiss}>
-          <Task
-            selected={selected}
-            title={title}
-            onLayout={({nativeEvent}) => {
-              if (heightCard.value === 100) {
-                heightCard.value = nativeEvent.layout.height;
-              }
-            }}
-          />
+          <Task selected={selected} title={title} />
         </Animated.View>
       </GestureDetector>
-      <Animated.View style={undoAction}>
-        <UndoAction />
+      <Animated.View
+        layout={Layout}
+        exiting={FadeOut}
+        style={[undoActionAnim, styles.undoAction]}>
+        <UndoAction
+          onUndo={() => {
+            offsetX.value = 0;
+            setWantToClose(false);
+          }}
+        />
       </Animated.View>
     </View>
   );

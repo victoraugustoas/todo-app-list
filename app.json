@@ -1,10 +1,11 @@
 {
   "expo": {
     "name": "todoAppWExpo",
-    "slug": "todoAppWExpo",
+    "slug": "todoAppList",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
+    "owner": "victoraugustoas",
     "splash": {
       "image": "./src/assets/splash.png",
       "resizeMode": "contain",
