@@ -1,11 +1,8 @@
 import React from 'react';
-import {
-  StyleSheet,
-  TouchableOpacity,
-  TouchableOpacityProps,
-} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
+  interpolate,
   Layout,
   runOnJS,
   SlideInLeft,
@@ -19,6 +16,7 @@ import {
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
 import {Task} from './Task';
+import {UndoAction} from './UndoAction';
 
 const styles = StyleSheet.create({
   bubbleContainer: {
@@ -72,38 +70,36 @@ const styles = StyleSheet.create({
   },
 });
 
-export interface CardTaskProps extends TouchableOpacityProps {
+export interface CardTaskProps {
   title: string;
   selected?: boolean;
   onDimiss?: () => void;
+  onPress?: () => void;
 }
 
 const CardTask: React.FC<CardTaskProps> = ({
   title,
   selected,
   onDimiss,
-  ...props
+  onPress,
 }) => {
   const offsetX = useSharedValue(0);
   const heightCard = useSharedValue(100);
   const margin = useSharedValue(heightPercentageToDP(1));
+  const totalOffsetX = -widthPercentageToDP(100);
 
   function onClose() {
     const exitTime = 225;
     const heightTime = 350;
 
-    offsetX.value = withTiming(
-      -widthPercentageToDP(100),
-      {duration: exitTime},
-      () => {
-        heightCard.value = withTiming(0, {duration: heightTime});
-        margin.value = withTiming(0);
-      },
-    );
+    offsetX.value = withTiming(totalOffsetX, {duration: exitTime}, () => {
+      heightCard.value = withTiming(0, {duration: heightTime});
+      margin.value = withTiming(0);
+    });
 
-    setTimeout(() => {
-      onDimiss && onDimiss();
-    }, exitTime + heightTime);
+    // setTimeout(() => {
+    //   onDimiss && onDimiss();
+    // }, exitTime + heightTime);
   }
 
   const dragGesture = Gesture.Pan()
@@ -117,16 +113,25 @@ const CardTask: React.FC<CardTaskProps> = ({
         offsetX.value = 0;
       }
     });
+  const tap = Gesture.Tap().onStart(() => {
+    onPress && onPress();
+  });
+  const gesture = Gesture.Race(dragGesture, tap);
 
   const swipeToDimiss = useAnimatedStyle(() => ({
     transform: [{translateX: withSpring(offsetX.value)}],
+    opacity: interpolate(offsetX.value, [0, totalOffsetX], [1, 0]),
     height: heightCard.value,
     marginVertical: margin.value,
   }));
+  const undoAction = useAnimatedStyle(() => ({
+    opacity: interpolate(offsetX.value, [0, totalOffsetX], [0, 1]),
+    display: offsetX.value === totalOffsetX ? 'flex' : 'none',
+  }));
 
   return (
-    <TouchableOpacity {...props}>
-      <GestureDetector gesture={dragGesture}>
+    <View>
+      <GestureDetector gesture={gesture}>
         <Animated.View
           entering={SlideInLeft}
           layout={Layout.springify()}
@@ -136,17 +141,16 @@ const CardTask: React.FC<CardTaskProps> = ({
             title={title}
             onLayout={({nativeEvent}) => {
               if (heightCard.value === 100) {
-                console.log(
-                  '🚀 ~ file: index.tsx ~ line 134 ~ nativeEvent',
-                  nativeEvent,
-                );
                 heightCard.value = nativeEvent.layout.height;
               }
             }}
           />
         </Animated.View>
       </GestureDetector>
-    </TouchableOpacity>
+      <Animated.View style={undoAction}>
+        <UndoAction />
+      </Animated.View>
+    </View>
   );
 };
 
