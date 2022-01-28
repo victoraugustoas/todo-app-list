@@ -24,14 +24,15 @@ const styles = StyleSheet.create({
       android: -widthPercentageToDP(5),
     }),
   },
-  drawerItem: {flexDirection: 'row', alignItems: 'center'},
-  drawerItemIcon: {
-    flex: 2,
-    fontSize: widthPercentageToDP(6),
-    color: '#9D9AB4',
-    textAlign: 'center',
+  activeDrawerItem: {
+    backgroundColor: '#ADBAEB16',
+    borderRadius: widthPercentageToDP(3),
+    paddingHorizontal: widthPercentageToDP(2),
+    paddingVertical: widthPercentageToDP(1),
   },
-  drawerItemName: {flex: 6, fontSize: widthPercentageToDP(6), color: '#ADBAEB'},
+  drawerItem: {flexDirection: 'row', alignItems: 'center'},
+  drawerItemIcon: {flex: 1, fontSize: widthPercentageToDP(6), color: '#9D9AB4'},
+  drawerItemName: {flex: 4, fontSize: widthPercentageToDP(7), color: '#ADBAEB'},
 });
 
 const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
@@ -84,10 +85,15 @@ const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
         const routeConfig = Object.values(appRoutes).find(
           routeConfig => routeConfig.link === route.route.name,
         )!;
+
         return (
           <TouchableOpacity
+            key={routeConfig.link}
             onPress={() => props.navigation.navigate(routeConfig.link)}
-            style={styles.drawerItem}>
+            style={[
+              styles.drawerItem,
+              route.navigation.isFocused() && styles.activeDrawerItem,
+            ]}>
             <Icon style={styles.drawerItemIcon} name={routeConfig.icon} />
 
             <Typography style={styles.drawerItemName}>
