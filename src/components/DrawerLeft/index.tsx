@@ -1,9 +1,15 @@
 import {
   DrawerContentComponentProps,
-  DrawerContentScrollView,
+  useDrawerStatus,
 } from '@react-navigation/drawer';
 import React from 'react';
 import {Platform, StyleSheet, TouchableOpacity, View} from 'react-native';
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
@@ -37,72 +43,103 @@ const styles = StyleSheet.create({
 
 const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
   const username = 'Victor Augusto Andrade Silva'.split(' ').slice(0, 2);
+  const drawerStatus = useDrawerStatus();
+  const translateXInitial = -widthPercentageToDP(10);
+
+  const animation = useDerivedValue(() => {
+    if (drawerStatus === 'open') {
+      return withTiming(1);
+    } else {
+      return withTiming(0);
+    }
+  });
+
+  const showDrawer = useAnimatedStyle(
+    () => ({
+      opacity: withTiming(animation.value),
+      transform: [
+        {
+          translateX: interpolate(
+            animation.value,
+            [0, 1],
+            [translateXInitial, 0],
+          ),
+        },
+      ],
+    }),
+    [drawerStatus],
+  );
 
   return (
-    <DrawerContentScrollView
+    <View
       style={{
         backgroundColor: '#0F1F55',
         paddingHorizontal: widthPercentageToDP(10),
         paddingTop: heightPercentageToDP(6),
+        flex: 1,
       }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}>
-        <Avatar
-          borderCompletion
-          size={widthPercentageToDP(25)}
-          source={{uri: 'https://avatars.githubusercontent.com/u/38368198?v=4'}}
-        />
-
-        <TouchableOpacity
-          onPress={() => props.navigation.goBack()}
+      <Animated.ScrollView style={[showDrawer]}>
+        <View
           style={{
-            height: widthPercentageToDP(12),
-            width: widthPercentageToDP(12),
-            borderRadius: widthPercentageToDP(12) / 2,
-            borderColor: '#9D9AB4',
-            borderWidth: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
           }}>
-          <Icon
-            name="chevron-left"
-            style={{fontSize: widthPercentageToDP(6), color: '#ADBAEB'}}
+          <Avatar
+            borderCompletion
+            size={widthPercentageToDP(25)}
+            source={{
+              uri: 'https://avatars.githubusercontent.com/u/38368198?v=4',
+            }}
           />
-        </TouchableOpacity>
-      </View>
 
-      <View>
-        <Typography style={styles.username}>{username[0]}</Typography>
-        <Typography style={[styles.username, styles.spacingSecondName]}>
-          {username[1]}
-        </Typography>
-      </View>
-
-      {Object.values(props.descriptors).map(route => {
-        const routeConfig = Object.values(appRoutes).find(
-          routeConfig => routeConfig.link === route.route.name,
-        )!;
-
-        return (
           <TouchableOpacity
-            key={routeConfig.link}
-            onPress={() => props.navigation.navigate(routeConfig.link)}
-            style={[
-              styles.drawerItem,
-              route.navigation.isFocused() && styles.activeDrawerItem,
-            ]}>
-            <Icon style={styles.drawerItemIcon} name={routeConfig.icon} />
-
-            <Typography style={styles.drawerItemName}>
-              {routeConfig.displayName}
-            </Typography>
+            onPress={() => props.navigation.goBack()}
+            style={{
+              height: widthPercentageToDP(12),
+              width: widthPercentageToDP(12),
+              borderRadius: widthPercentageToDP(12) / 2,
+              borderColor: '#9D9AB4',
+              borderWidth: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Icon
+              name="chevron-left"
+              style={{fontSize: widthPercentageToDP(6), color: '#ADBAEB'}}
+            />
           </TouchableOpacity>
-        );
-      })}
-    </DrawerContentScrollView>
+        </View>
+
+        <View>
+          <Typography style={styles.username}>{username[0]}</Typography>
+          <Typography style={[styles.username, styles.spacingSecondName]}>
+            {username[1]}
+          </Typography>
+        </View>
+
+        {Object.values(props.descriptors).map(route => {
+          const routeConfig = Object.values(appRoutes).find(
+            routeConfig => routeConfig.link === route.route.name,
+          )!;
+
+          return (
+            <TouchableOpacity
+              key={routeConfig.link}
+              onPress={() => props.navigation.navigate(routeConfig.link)}
+              style={[
+                styles.drawerItem,
+                route.navigation.isFocused() && styles.activeDrawerItem,
+              ]}>
+              <Icon style={styles.drawerItemIcon} name={routeConfig.icon} />
+
+              <Typography style={styles.drawerItemName}>
+                {routeConfig.displayName}
+              </Typography>
+            </TouchableOpacity>
+          );
+        })}
+      </Animated.ScrollView>
+    </View>
   );
 };
 
