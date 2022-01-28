@@ -1,3 +1,7 @@
 export const appRoutes = {
-  HOME: 'home',
+  HOME: {
+    link: 'home',
+    icon: 'home',
+    displayName: 'Home',
+  },
 };
