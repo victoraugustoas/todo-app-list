@@ -1,3 +1,5 @@
+import {DrawerNavigationProp} from '@react-navigation/drawer';
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
@@ -19,9 +21,10 @@ const styles = StyleSheet.create({
 });
 
 const Header: React.FC = () => {
+  const navigation = useNavigation<DrawerNavigationProp<{}>>();
   return (
     <View style={styles.container}>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
         <Icon name="menu" style={styles.icon} />
       </TouchableOpacity>
 
