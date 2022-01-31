@@ -1,5 +1,5 @@
 import {MotiView} from 'moti';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -8,73 +8,87 @@ import {
 } from 'react-native';
 import Animated, {
   interpolateColor,
+  runOnJS,
+  runOnUI,
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
 } from 'react-native-reanimated';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/Feather';
+import {useTheme} from '../../contexts/ThemeProvider';
+import {Theme} from '../../contexts/ThemeProvider/Theme';
 import {Typography} from '../Typography';
 
-const styles = StyleSheet.create({
-  bubbleContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bubble: {
-    height: widthPercentageToDP(6.8),
-    width: widthPercentageToDP(6.8),
-    borderRadius: widthPercentageToDP(6.8) / 2,
-    borderWidth: 2,
-    borderColor: 'rgb(221, 12, 241)',
-    backgroundColor: 'rgb(221, 12, 241)',
+const useStyles = (theme: Theme) =>
+  StyleSheet.create({
+    bubbleContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bubble: {
+      height: widthPercentageToDP(6.8),
+      width: widthPercentageToDP(6.8),
+      borderRadius: widthPercentageToDP(6.8) / 2,
+      borderWidth: 2,
+      borderColor: 'rgb(221, 12, 241)',
+      backgroundColor: 'rgb(221, 12, 241)',
 
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  animatedBubble: {
-    backgroundColor: '#fff',
-    height: '100%',
-    width: '100%',
-    borderRadius: widthPercentageToDP(6.8) / 2,
-  },
-  title: {fontSize: widthPercentageToDP(7.6), color: 'rgb(157, 154, 180)'},
-  container: {
-    flexDirection: 'row',
-    borderRadius: widthPercentageToDP(5),
-    backgroundColor: '#fff',
-    paddingHorizontal: widthPercentageToDP(3),
-    paddingVertical: widthPercentageToDP(4.6),
-  },
-  titleContainer: {flex: 6, flexDirection: 'row'},
-  markCompleted: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  riskCompletedText: {
-    height: 2,
-    backgroundColor: 'rgb(157, 154, 180)',
-    position: 'absolute',
-    borderRadius: 1,
-  },
-  icon: {
-    fontSize: widthPercentageToDP(4.6),
-    color: '#fff',
-  },
-});
+      position: 'relative',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    animatedBubble: {
+      backgroundColor:
+        theme.palette.type === 'light'
+          ? '#fff'
+          : theme.palette.background.drawer.computed,
+      height: '100%',
+      width: '100%',
+      borderRadius: widthPercentageToDP(6.8) / 2,
+    },
+    title: {fontSize: widthPercentageToDP(7.6), color: 'rgb(157, 154, 180)'},
+    container: {
+      flexDirection: 'row',
+      borderRadius: widthPercentageToDP(5),
+      backgroundColor:
+        theme.palette.type === 'light'
+          ? '#fff'
+          : theme.palette.background.drawer.computed,
+      paddingHorizontal: widthPercentageToDP(3),
+      paddingVertical: widthPercentageToDP(4.6),
+    },
+    titleContainer: {flex: 6, flexDirection: 'row'},
+    markCompleted: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+    },
+    riskCompletedText: {
+      height: 2,
+      backgroundColor: 'rgb(157, 154, 180)',
+      position: 'absolute',
+      borderRadius: 1,
+    },
+    icon: {
+      fontSize: widthPercentageToDP(4.6),
+      color: '#fff',
+    },
+  });
 
 export interface TaskProps extends TouchableOpacityProps {
   selected?: boolean;
   title: string;
+  colorTask: string;
 }
 
-const Task: React.FC<TaskProps> = ({selected, title, ...props}) => {
+const Task: React.FC<TaskProps> = ({selected, title, colorTask, ...props}) => {
   const [totalTextWidth, setTotalTextWidth] = useState(0);
+  const theme = useTheme();
+  const styles = useStyles(theme);
 
   const animateColor = useDerivedValue(() => {
     if (selected) {
@@ -83,16 +97,27 @@ const Task: React.FC<TaskProps> = ({selected, title, ...props}) => {
       return withTiming(0, {duration: 450});
     }
   });
-  const selectedBubble = useAnimatedStyle(() => {
-    const color = interpolateColor(
+  const lightenColor = runOnUI(theme.palette.lighten)(
+    theme.palette.background.drawer.dark,
+    0.6,
+  ) as unknown as string;
+
+  const colorLight = useMemo(() => {
+    return interpolateColor(animateColor.value, [0, 1], [colorTask, '#ccc']);
+  }, []);
+  const colorDarken = useMemo(() => {
+    return interpolateColor(
       animateColor.value,
       [0, 1],
-      ['rgba(221, 12, 241,1)', '#ccc'],
+      [colorTask, lightenColor],
     );
+  }, []);
 
+  let selectedBubble = useAnimatedStyle(() => {
     return {
-      backgroundColor: color,
-      borderColor: color,
+      backgroundColor:
+        theme.palette.type === 'light' ? colorLight : colorDarken,
+      borderColor: theme.palette.type === 'light' ? colorLight : colorDarken,
     };
   });
 

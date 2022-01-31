@@ -25,8 +25,6 @@ const Layout: React.FC = ({children}) => {
   const drawerStatus = useDrawerStatus();
   const borderRadius = widthPercentageToDP(12);
 
-  console.log(theme.palette.background.default.computed);
-
   const drawerProgress = useDerivedValue(() => {
     if (drawerStatus === 'open') {
       return withTiming(1);

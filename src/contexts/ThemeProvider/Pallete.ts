@@ -20,6 +20,8 @@ export interface Palette {
   brightness: Color;
   other: string[];
   hexToRGBA: (hex: string, alpha: number | string) => string;
+  lighten: (hex: string, value: number) => string;
+  darken: (hex: string, value: number) => string;
   type: PaletteType;
   background: BackgroundColor;
 }
@@ -41,10 +43,35 @@ function hexToRGBA(hex: string, alpha: number | string) {
     return `rgb(${r}, ${g}, ${b})`;
   }
 }
+function shadeColor(color: string, percent: number) {
+  let R = parseInt(color.substring(1, 3), 16);
+  let G = parseInt(color.substring(3, 5), 16);
+  let B = parseInt(color.substring(5, 7), 16);
 
-const computeColor = (paletteType: PaletteType, color: Color): Color => ({
-  ...color,
-  computed: paletteType === 'light' ? color.light : color.dark,
+  R = parseInt(String((R * (100 + percent)) / 100));
+  G = parseInt(String((G * (100 + percent)) / 100));
+  B = parseInt(String((B * (100 + percent)) / 100));
+
+  R = R < 255 ? R : 255;
+  G = G < 255 ? G : 255;
+  B = B < 255 ? B : 255;
+
+  let RR = R.toString(16).length == 1 ? '0' + R.toString(16) : R.toString(16);
+  let GG = G.toString(16).length == 1 ? '0' + G.toString(16) : G.toString(16);
+  let BB = B.toString(16).length == 1 ? '0' + B.toString(16) : B.toString(16);
+
+  return '#' + RR + GG + BB;
+}
+
+const computeColor = (computed: {
+  paletteType?: PaletteType;
+  color: Color;
+}): Color => ({
+  ...computed.color,
+  computed:
+    computed.paletteType === 'light'
+      ? computed.color.light
+      : computed.color.dark,
 });
 
 export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
@@ -71,27 +98,32 @@ export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
       ...paletteOptions?.brightness,
     },
     background: {
-      drawer: {
-        light: '#0F1F55',
-        dark: '#0F1F55',
-        computed: '#0F1F55',
-        other: [],
-        ...paletteOptions?.background?.drawer,
-      },
-      default: computeColor(
-        paletteOptions?.type === 'dark' ? 'dark' : 'light',
-        {
+      drawer: computeColor({
+        paletteType: paletteOptions?.type,
+        color: {
+          light: '#0F1F55',
+          dark: '#0F1F55',
+          computed: '',
+          other: [],
+          ...paletteOptions?.background?.drawer,
+        },
+      }),
+      default: computeColor({
+        paletteType: paletteOptions?.type,
+        color: {
           light: '#F4F6FD',
           dark: '#3451A1',
-          computed: '#F4F6FD',
+          computed: '',
           other: [],
           ...paletteOptions?.background?.default,
         },
-      ),
+      }),
     },
     other: [],
     type: 'light',
     hexToRGBA,
+    lighten: (hex: string, value: number) => shadeColor(hex, value * 100),
+    darken: (hex: string, value: number) => shadeColor(hex, -(value * 100)),
     ...paletteOptions,
   };
 };

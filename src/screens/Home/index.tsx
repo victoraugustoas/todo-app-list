@@ -8,10 +8,10 @@ import {Typography} from '../../components/Typography';
 
 const HomeScreen: React.FC = () => {
   const [tasks, setTasks] = useState([
-    {id: 1, title: 'Tarefa 01 do dia D'},
-    {id: 2, title: 'Create the app'},
-    {id: 3, title: 'daily meeting with team'},
-    {id: 4, title: 'daily meeting with team'},
+    {id: 1, colorTask: '#0FF', title: 'Tarefa 01 do dia D'},
+    {id: 2, colorTask: '#0FF', title: 'Create the app'},
+    {id: 3, colorTask: '#0FF', title: 'daily meeting with team'},
+    {id: 4, colorTask: '#0FF', title: 'daily meeting with team'},
   ]);
 
   const [selectedTask, setSelectedTasks] = useState<number[]>([]);
@@ -49,13 +49,17 @@ const HomeScreen: React.FC = () => {
                   return copyOldState;
                 });
               }}
+              colorTask={task.colorTask}
             />
           );
         })}
       </View>
       <TouchableOpacity
         onPress={() => {
-          setTasks(old => [...old, {id: 33, title: 'daily meeting with team'}]);
+          setTasks(old => [
+            ...old,
+            {id: 33, title: 'daily meeting with team', colorTask: '#0FF'},
+          ]);
         }}>
         <Typography>Add</Typography>
       </TouchableOpacity>

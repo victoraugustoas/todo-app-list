@@ -79,6 +79,7 @@ export interface CardTaskProps extends ViewProps {
   onDimiss?: () => void;
   onPress?: () => void;
   timeoutToClose?: number;
+  colorTask: string;
 }
 
 const CardTask: React.FC<CardTaskProps> = ({
@@ -87,6 +88,7 @@ const CardTask: React.FC<CardTaskProps> = ({
   onDimiss,
   onPress,
   timeoutToClose = 3000,
+  colorTask,
   ...props
 }) => {
   const offsetX = useSharedValue(0);
@@ -143,7 +145,7 @@ const CardTask: React.FC<CardTaskProps> = ({
           entering={SlideInLeft}
           layout={Layout}
           style={swipeToDimiss}>
-          <Task selected={selected} title={title} />
+          <Task selected={selected} title={title} colorTask={colorTask} />
         </Animated.View>
       </GestureDetector>
       <Animated.View
