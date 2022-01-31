@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {StyleSheet, View, ViewProps} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
@@ -82,85 +82,90 @@ export interface CardTaskProps extends ViewProps {
   colorTask: string;
 }
 
-const CardTask: React.FC<CardTaskProps> = ({
-  title,
-  selected,
-  onDimiss,
-  onPress,
-  timeoutToClose = 3000,
-  colorTask,
-  ...props
-}) => {
-  const offsetX = useSharedValue(0);
-  const totalOffsetX = -widthPercentageToDP(100);
-  const [wantToclose, setWantToClose] = useState(false);
+const CardTask: React.FC<CardTaskProps> = memo(
+  ({
+    title,
+    selected,
+    onDimiss,
+    onPress,
+    timeoutToClose = 3000,
+    colorTask,
+    ...props
+  }) => {
+    const offsetX = useSharedValue(0);
+    const totalOffsetX = -widthPercentageToDP(100);
+    const [wantToclose, setWantToClose] = useState(false);
 
-  function onClose() {
-    const exitTime = 225;
+    function onClose() {
+      const exitTime = 225;
 
-    offsetX.value = withTiming(totalOffsetX, {duration: exitTime});
-    setWantToClose(true);
-  }
-
-  const dragGesture = Gesture.Pan()
-    .onUpdate(e => {
-      offsetX.value = e.translationX;
-    })
-    .onEnd(e => {
-      if (Math.abs(e.velocityX) > 1500 && e.velocityX < 0 && onDimiss) {
-        runOnJS(onClose)();
-      } else {
-        offsetX.value = 0;
-      }
-    });
-  const tap = Gesture.Tap().onStart(() => {
-    onPress && runOnJS(onPress)();
-  });
-  const gesture = Gesture.Race(dragGesture, tap);
-
-  const swipeToDimiss = useAnimatedStyle(() => ({
-    transform: [{translateX: withSpring(offsetX.value)}],
-    opacity: interpolate(offsetX.value, [0, totalOffsetX], [1, 0]),
-  }));
-  const undoActionAnim = useAnimatedStyle(() => ({
-    opacity: interpolate(offsetX.value, [0, totalOffsetX], [0, 1]),
-  }));
-
-  useEffect(() => {
-    let timeoutToDimiss: NodeJS.Timeout | null = null;
-    if (wantToclose) {
-      timeoutToDimiss = setTimeout(() => {
-        onDimiss && onDimiss();
-      }, timeoutToClose);
+      offsetX.value = withTiming(totalOffsetX, {duration: exitTime});
+      setWantToClose(true);
     }
-    return () => {
-      if (timeoutToDimiss) clearTimeout(timeoutToDimiss);
-    };
-  }, [wantToclose]);
 
-  return (
-    <View {...props} style={[props.style, {position: 'relative'}]}>
-      <GestureDetector gesture={gesture}>
+    const dragGesture = Gesture.Pan()
+      .onUpdate(e => {
+        offsetX.value = e.translationX;
+      })
+      .onEnd(e => {
+        if (Math.abs(e.velocityX) > 1500 && e.velocityX < 0 && onDimiss) {
+          runOnJS(onClose)();
+        } else {
+          offsetX.value = 0;
+        }
+      });
+    const tap = Gesture.Tap().onStart(() => {
+      onPress && runOnJS(onPress)();
+    });
+    const gesture = Gesture.Race(dragGesture, tap);
+
+    const swipeToDimiss = useAnimatedStyle(() => ({
+      transform: [{translateX: withSpring(offsetX.value)}],
+      opacity: interpolate(offsetX.value, [0, totalOffsetX], [1, 0]),
+    }));
+    const undoActionAnim = useAnimatedStyle(() => ({
+      opacity: interpolate(offsetX.value, [0, totalOffsetX], [0, 1]),
+    }));
+
+    useEffect(() => {
+      let timeoutToDimiss: NodeJS.Timeout | null = null;
+      if (wantToclose) {
+        timeoutToDimiss = setTimeout(() => {
+          onDimiss && onDimiss();
+        }, timeoutToClose);
+      }
+      return () => {
+        if (timeoutToDimiss) clearTimeout(timeoutToDimiss);
+      };
+    }, [wantToclose]);
+
+    return (
+      <View {...props} style={[props.style, {position: 'relative'}]}>
+        <GestureDetector gesture={gesture}>
+          <Animated.View
+            entering={SlideInLeft}
+            layout={Layout}
+            style={swipeToDimiss}>
+            <Task selected={selected} title={title} colorTask={colorTask} />
+          </Animated.View>
+        </GestureDetector>
         <Animated.View
-          entering={SlideInLeft}
           layout={Layout}
-          style={swipeToDimiss}>
-          <Task selected={selected} title={title} colorTask={colorTask} />
+          exiting={FadeOut}
+          style={[undoActionAnim, styles.undoAction]}>
+          <UndoAction
+            onUndo={() => {
+              offsetX.value = 0;
+              setWantToClose(false);
+            }}
+          />
         </Animated.View>
-      </GestureDetector>
-      <Animated.View
-        layout={Layout}
-        exiting={FadeOut}
-        style={[undoActionAnim, styles.undoAction]}>
-        <UndoAction
-          onUndo={() => {
-            offsetX.value = 0;
-            setWantToClose(false);
-          }}
-        />
-      </Animated.View>
-    </View>
-  );
-};
+      </View>
+    );
+  },
+  (prev, next) => {
+    return prev.selected === next.selected;
+  },
+);
 
 export {CardTask};
