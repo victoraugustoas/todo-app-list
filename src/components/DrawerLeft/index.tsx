@@ -51,7 +51,7 @@ const useStyles = (theme: Theme) =>
       color: '#ADBAEB',
     },
     drawerContainer: {
-      backgroundColor: theme.palette.background.drawer,
+      backgroundColor: theme.palette.background.drawer.computed,
       paddingHorizontal: widthPercentageToDP(10),
       paddingTop: heightPercentageToDP(6),
       flex: 1,
