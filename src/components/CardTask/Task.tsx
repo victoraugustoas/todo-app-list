@@ -1,5 +1,5 @@
 import {MotiView} from 'moti';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -9,7 +9,6 @@ import {
 import Animated, {
   interpolateColor,
   runOnJS,
-  runOnUI,
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
@@ -97,27 +96,26 @@ const Task: React.FC<TaskProps> = ({selected, title, colorTask, ...props}) => {
       return withTiming(0, {duration: 450});
     }
   });
-  const lightenColor = runOnUI(theme.palette.lighten)(
+  const lightenColor = runOnJS(theme.palette.lighten)(
     theme.palette.background.drawer.dark,
     0.6,
   ) as unknown as string;
-
-  const colorLight = useMemo(() => {
+  const colorLight = useDerivedValue(() => {
     return interpolateColor(animateColor.value, [0, 1], [colorTask, '#ccc']);
-  }, []);
-  const colorDarken = useMemo(() => {
+  });
+  const colorDarken = useDerivedValue(() => {
     return interpolateColor(
       animateColor.value,
       [0, 1],
       [colorTask, lightenColor],
     );
-  }, []);
-
-  let selectedBubble = useAnimatedStyle(() => {
+  });
+  const selectedBubble = useAnimatedStyle(() => {
     return {
       backgroundColor:
-        theme.palette.type === 'light' ? colorLight : colorDarken,
-      borderColor: theme.palette.type === 'light' ? colorLight : colorDarken,
+        theme.palette.type === 'light' ? colorLight.value : colorDarken.value,
+      borderColor:
+        theme.palette.type === 'light' ? colorLight.value : colorDarken.value,
     };
   });
 

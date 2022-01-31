@@ -14,7 +14,9 @@ const HomeScreen: React.FC = () => {
     {id: 4, colorTask: '#0FF', title: 'daily meeting with team'},
   ]);
 
-  const [selectedTask, setSelectedTasks] = useState<number[]>([]);
+  const [selectedTask, setSelectedTasks] = useState<{
+    [propID: number]: boolean;
+  }>({});
 
   return (
     <Layout>
@@ -26,21 +28,12 @@ const HomeScreen: React.FC = () => {
               style={{marginVertical: widthPercentageToDP(1.2)}}
               key={task.id}
               title={task.title}
-              selected={selectedTask.some(selected => selected === idx)}
+              selected={selectedTask[task.id]}
               onPress={() =>
-                setSelectedTasks(oldState => {
-                  const oldStateCopy = [...oldState];
-                  const selectedIdx = oldStateCopy.findIndex(
-                    selected => selected === idx,
-                  );
-                  if (selectedIdx > -1) {
-                    oldStateCopy.splice(selectedIdx, 1);
-                  } else {
-                    oldStateCopy.push(idx);
-                  }
-
-                  return oldStateCopy;
-                })
+                setSelectedTasks(old => ({
+                  ...old,
+                  [task.id]: old[task.id] ? !old[task.id] : true,
+                }))
               }
               onDimiss={() => {
                 setTasks(oldState => {
