@@ -16,35 +16,54 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/Feather';
 import {appRoutes} from '../../config/routes';
+import {useTheme} from '../../contexts/ThemeProvider';
+import {Theme} from '../../contexts/ThemeProvider/Theme';
 import {Avatar} from '../Avatar';
 import {Typography} from '../Typography';
 
-const styles = StyleSheet.create({
-  username: {
-    fontSize: widthPercentageToDP(15),
-    color: '#fff',
-  },
-  spacingSecondName: {
-    marginTop: Platform.select({
-      ios: -widthPercentageToDP(10),
-      android: -widthPercentageToDP(5),
-    }),
-  },
-  activeDrawerItem: {
-    backgroundColor: '#ADBAEB16',
-    borderRadius: widthPercentageToDP(3),
-    paddingHorizontal: widthPercentageToDP(2),
-    paddingVertical: widthPercentageToDP(1),
-  },
-  drawerItem: {flexDirection: 'row', alignItems: 'center'},
-  drawerItemIcon: {flex: 1, fontSize: widthPercentageToDP(6), color: '#9D9AB4'},
-  drawerItemName: {flex: 4, fontSize: widthPercentageToDP(7), color: '#ADBAEB'},
-});
+const useStyles = (theme: Theme) =>
+  StyleSheet.create({
+    username: {
+      fontSize: widthPercentageToDP(15),
+      color: '#fff',
+    },
+    spacingSecondName: {
+      marginTop: Platform.select({
+        ios: -widthPercentageToDP(10),
+        android: -widthPercentageToDP(5),
+      }),
+    },
+    activeDrawerItem: {
+      backgroundColor: '#ADBAEB16',
+      borderRadius: widthPercentageToDP(3),
+      paddingHorizontal: widthPercentageToDP(2),
+      paddingVertical: widthPercentageToDP(1),
+    },
+    drawerItem: {flexDirection: 'row', alignItems: 'center'},
+    drawerItemIcon: {
+      flex: 1,
+      fontSize: widthPercentageToDP(6),
+      color: '#9D9AB4',
+    },
+    drawerItemName: {
+      flex: 4,
+      fontSize: widthPercentageToDP(7),
+      color: '#ADBAEB',
+    },
+    drawerContainer: {
+      backgroundColor: theme.palette.background.drawer,
+      paddingHorizontal: widthPercentageToDP(10),
+      paddingTop: heightPercentageToDP(6),
+      flex: 1,
+    },
+  });
 
 const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
   const username = 'Victor Augusto Andrade Silva'.split(' ').slice(0, 2);
   const drawerStatus = useDrawerStatus();
   const translateXInitial = -widthPercentageToDP(10);
+  const theme = useTheme();
+  const styles = useStyles(theme);
 
   const animation = useDerivedValue(() => {
     if (drawerStatus === 'open') {
@@ -71,13 +90,7 @@ const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
   );
 
   return (
-    <View
-      style={{
-        backgroundColor: '#0F1F55',
-        paddingHorizontal: widthPercentageToDP(10),
-        paddingTop: heightPercentageToDP(6),
-        flex: 1,
-      }}>
+    <View style={styles.drawerContainer}>
       <Animated.ScrollView style={[showDrawer]}>
         <View
           style={{

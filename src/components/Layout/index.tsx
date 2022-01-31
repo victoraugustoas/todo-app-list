@@ -8,12 +8,24 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
+import {useTheme} from '../../contexts/ThemeProvider';
+import {Theme} from '../../contexts/ThemeProvider/Theme';
 
-const styles = StyleSheet.create({});
+const useStyles = (theme: Theme) =>
+  StyleSheet.create({
+    layoutContainer: {
+      backgroundColor: theme.palette.background.default.computed,
+      flex: 1,
+    },
+  });
 
 const Layout: React.FC = ({children}) => {
+  const theme = useTheme();
+  const styles = useStyles(theme);
   const drawerStatus = useDrawerStatus();
   const borderRadius = widthPercentageToDP(12);
+
+  console.log(theme.palette.background.default.computed);
 
   const drawerProgress = useDerivedValue(() => {
     if (drawerStatus === 'open') {
@@ -29,8 +41,7 @@ const Layout: React.FC = ({children}) => {
   }));
 
   return (
-    <Animated.View
-      style={[{backgroundColor: '#F4F6FD', flex: 1}, animatedStyles]}>
+    <Animated.View style={[styles.layoutContainer, animatedStyles]}>
       {children}
     </Animated.View>
   );
