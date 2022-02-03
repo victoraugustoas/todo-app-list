@@ -7,11 +7,13 @@ import Animated, {
   Layout,
   runOnJS,
   SlideInLeft,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import {snapPoint} from 'react-native-redash';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {Task} from './Task';
 import {UndoAction} from './UndoAction';
@@ -94,12 +96,10 @@ const CardTask: React.FC<CardTaskProps> = memo(
   }) => {
     const offsetX = useSharedValue(0);
     const totalOffsetX = -widthPercentageToDP(100);
+    const SNAP_POINTS = [totalOffsetX, 0];
     const [wantToclose, setWantToClose] = useState(false);
 
     function onClose() {
-      const exitTime = 225;
-
-      offsetX.value = withTiming(totalOffsetX, {duration: exitTime});
       setWantToClose(true);
     }
 
@@ -108,11 +108,8 @@ const CardTask: React.FC<CardTaskProps> = memo(
         offsetX.value = e.translationX;
       })
       .onEnd(e => {
-        if (Math.abs(e.velocityX) > 1500 && e.velocityX < 0 && onDimiss) {
-          runOnJS(onClose)();
-        } else {
-          offsetX.value = 0;
-        }
+        const dest = snapPoint(offsetX.value, e.velocityX, SNAP_POINTS);
+        offsetX.value = withSpring(dest, {velocity: e.velocityX});
       });
     const tap = Gesture.Tap().onStart(() => {
       onPress && runOnJS(onPress)();
@@ -120,13 +117,22 @@ const CardTask: React.FC<CardTaskProps> = memo(
     const gesture = Gesture.Race(dragGesture, tap);
 
     const swipeToDimiss = useAnimatedStyle(() => ({
-      transform: [{translateX: withSpring(offsetX.value)}],
+      transform: [{translateX: offsetX.value}],
       opacity: interpolate(offsetX.value, [0, totalOffsetX], [1, 0]),
     }));
     const undoActionAnim = useAnimatedStyle(() => ({
       opacity: interpolate(offsetX.value, [0, totalOffsetX], [0, 1]),
     }));
 
+    // call close function
+    useAnimatedReaction(
+      () => offsetX.value,
+      value => {
+        if (value === totalOffsetX) {
+          runOnJS(onClose)();
+        }
+      },
+    );
     useEffect(() => {
       let timeoutToDimiss: NodeJS.Timeout | null = null;
       if (wantToclose) {
