@@ -1,10 +1,8 @@
 import React, {useState} from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {CardTask} from '../../components/CardTask';
-import {Header} from '../../components/Header';
 import {Layout} from '../../components/Layout';
-import {Typography} from '../../components/Typography';
 
 const HomeScreen: React.FC = () => {
   const [tasks, setTasks] = useState([
@@ -12,6 +10,7 @@ const HomeScreen: React.FC = () => {
     {id: 2, colorTask: '#0FF', title: 'Create the app'},
     {id: 3, colorTask: '#0FF', title: 'daily meeting with team'},
     {id: 4, colorTask: '#0FF', title: 'daily meeting with team'},
+    {id: 5, colorTask: '#08F', title: 'baby 🦈'},
   ]);
 
   const [selectedTask, setSelectedTasks] = useState<{

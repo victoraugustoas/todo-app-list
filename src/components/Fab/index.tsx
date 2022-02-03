@@ -11,9 +11,10 @@ const styles = StyleSheet.create({});
 
 export interface FabProps extends TouchableOpacityProps {
   variant: 'outlined';
+  size?: number;
 }
 
-const Fab: React.FC<FabProps> = ({variant, children, ...props}) => {
+const Fab: React.FC<FabProps> = ({variant, size, children, ...props}) => {
   const theme = useTheme();
 
   return variant === 'outlined' ? (
@@ -21,10 +22,10 @@ const Fab: React.FC<FabProps> = ({variant, children, ...props}) => {
       {...props}
       style={[
         {
-          height: widthPercentageToDP(12),
-          width: widthPercentageToDP(12),
-          borderRadius: widthPercentageToDP(12) / 2,
-          borderColor: theme.palette.primary.light,
+          height: size ? size : widthPercentageToDP(12),
+          width: size ? size : widthPercentageToDP(12),
+          borderRadius: size ? size / 2 : widthPercentageToDP(12) / 2,
+          borderColor: theme.palette.lighten(theme.palette.primary.light, 0.3),
           borderWidth: 1,
           justifyContent: 'center',
           alignItems: 'center',
