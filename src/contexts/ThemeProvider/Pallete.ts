@@ -83,7 +83,7 @@ export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
       color: {
         light: '#9D9AB4',
         dark: '#FAFCFE',
-        computed: '#0F1F55',
+        computed: '',
         other: [],
         ...paletteOptions?.primary,
       },

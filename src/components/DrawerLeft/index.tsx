@@ -14,18 +14,19 @@ import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import Icon from 'react-native-vector-icons/Feather';
 import {appRoutes} from '../../config/routes';
 import {useTheme} from '../../contexts/ThemeProvider';
 import {Theme} from '../../contexts/ThemeProvider/Theme';
 import {Avatar} from '../Avatar';
+import {Fab} from '../Fab';
+import {Icon} from '../Icon';
 import {Typography} from '../Typography';
 
 const useStyles = (theme: Theme) =>
   StyleSheet.create({
     username: {
       fontSize: widthPercentageToDP(15),
-      color: '#fff',
+      color: theme.palette.primary.dark,
     },
     spacingSecondName: {
       marginTop: Platform.select({
@@ -34,7 +35,10 @@ const useStyles = (theme: Theme) =>
       }),
     },
     activeDrawerItem: {
-      backgroundColor: '#ADBAEB16',
+      backgroundColor: theme.palette.lighten(
+        theme.palette.background.drawer.computed,
+        0.4,
+      ),
       borderRadius: widthPercentageToDP(3),
       paddingHorizontal: widthPercentageToDP(2),
       paddingVertical: widthPercentageToDP(1),
@@ -43,7 +47,7 @@ const useStyles = (theme: Theme) =>
     drawerItemIcon: {
       flex: 1,
       fontSize: widthPercentageToDP(6),
-      color: '#9D9AB4',
+      color: theme.palette.primary.light,
     },
     drawerItemName: {
       flex: 4,
@@ -55,6 +59,10 @@ const useStyles = (theme: Theme) =>
       paddingHorizontal: widthPercentageToDP(10),
       paddingTop: heightPercentageToDP(6),
       flex: 1,
+    },
+    icon: {
+      color: theme.palette.primary.dark,
+      fontSize: widthPercentageToDP(6),
     },
   });
 
@@ -105,22 +113,9 @@ const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
             }}
           />
 
-          <TouchableOpacity
-            onPress={() => props.navigation.goBack()}
-            style={{
-              height: widthPercentageToDP(12),
-              width: widthPercentageToDP(12),
-              borderRadius: widthPercentageToDP(12) / 2,
-              borderColor: '#9D9AB4',
-              borderWidth: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Icon
-              name="chevron-left"
-              style={{fontSize: widthPercentageToDP(6), color: '#ADBAEB'}}
-            />
-          </TouchableOpacity>
+          <Fab variant="outlined" onPress={() => props.navigation.goBack()}>
+            <Icon name="chevron-left" type="feather" style={styles.icon} />
+          </Fab>
         </View>
 
         <View>
@@ -143,7 +138,11 @@ const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
                 styles.drawerItem,
                 route.navigation.isFocused() && styles.activeDrawerItem,
               ]}>
-              <Icon style={styles.drawerItemIcon} name={routeConfig.icon} />
+              <Icon
+                style={styles.drawerItemIcon}
+                name={routeConfig.icon}
+                type="feather"
+              />
 
               <Typography style={styles.drawerItemName}>
                 {routeConfig.displayName}

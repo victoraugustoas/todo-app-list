@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {
   StyleSheet,
@@ -6,7 +5,7 @@ import {
   TouchableOpacityProps,
 } from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {NavigationProps} from '../Router';
+import {useTheme} from '../../contexts/ThemeProvider';
 
 const styles = StyleSheet.create({});
 
@@ -15,6 +14,8 @@ export interface FabProps extends TouchableOpacityProps {
 }
 
 const Fab: React.FC<FabProps> = ({variant, children, ...props}) => {
+  const theme = useTheme();
+
   return variant === 'outlined' ? (
     <TouchableOpacity
       {...props}
@@ -23,7 +24,7 @@ const Fab: React.FC<FabProps> = ({variant, children, ...props}) => {
           height: widthPercentageToDP(12),
           width: widthPercentageToDP(12),
           borderRadius: widthPercentageToDP(12) / 2,
-          borderColor: '#9D9AB4',
+          borderColor: theme.palette.primary.light,
           borderWidth: 1,
           justifyContent: 'center',
           alignItems: 'center',
