@@ -11,7 +11,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import {snapPoint} from 'react-native-redash';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
@@ -99,10 +98,6 @@ const CardTask: React.FC<CardTaskProps> = memo(
     const SNAP_POINTS = [totalOffsetX, 0];
     const [wantToclose, setWantToClose] = useState(false);
 
-    function onClose() {
-      setWantToClose(true);
-    }
-
     const dragGesture = Gesture.Pan()
       .onUpdate(e => {
         offsetX.value = e.translationX;
@@ -129,7 +124,7 @@ const CardTask: React.FC<CardTaskProps> = memo(
       () => offsetX.value,
       value => {
         if (value === totalOffsetX) {
-          runOnJS(onClose)();
+          runOnJS(setWantToClose)(true);
         }
       },
     );
