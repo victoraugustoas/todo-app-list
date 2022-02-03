@@ -19,8 +19,7 @@ const HomeScreen: React.FC = () => {
   }>({});
 
   return (
-    <Layout>
-      <Header />
+    <Layout showAddButton>
       <View style={{marginHorizontal: widthPercentageToDP(3)}}>
         {tasks.map((task, idx) => {
           return (
@@ -47,15 +46,6 @@ const HomeScreen: React.FC = () => {
           );
         })}
       </View>
-      <TouchableOpacity
-        onPress={() => {
-          setTasks(old => [
-            ...old,
-            {id: 33, title: 'daily meeting with team', colorTask: '#0FF'},
-          ]);
-        }}>
-        <Typography>Add</Typography>
-      </TouchableOpacity>
     </Layout>
   );
 };
