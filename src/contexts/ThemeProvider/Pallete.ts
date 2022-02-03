@@ -74,15 +74,21 @@ const computeColor = (computed: {
       : computed.color.dark,
 });
 
+const lighten = (hex: string, value: number) => shadeColor(hex, value * 100);
+const darken = (hex: string, value: number) => shadeColor(hex, -(value * 100));
+
 export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
   return {
-    primary: {
-      light: '#0F1F55',
-      dark: '#0F1F55',
-      computed: '#0F1F55',
-      other: [],
-      ...paletteOptions?.primary,
-    },
+    primary: computeColor({
+      color: {
+        light: '#9D9AB4',
+        dark: '#FAFCFE',
+        computed: '#0F1F55',
+        other: [],
+        ...paletteOptions?.primary,
+      },
+      paletteType: paletteOptions?.type,
+    }),
     secondary: {
       light: '',
       dark: '',
@@ -122,8 +128,8 @@ export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
     other: [],
     type: 'light',
     hexToRGBA,
-    lighten: (hex: string, value: number) => shadeColor(hex, value * 100),
-    darken: (hex: string, value: number) => shadeColor(hex, -(value * 100)),
+    lighten,
+    darken,
     ...paletteOptions,
   };
 };
