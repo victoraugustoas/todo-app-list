@@ -100,6 +100,7 @@ const CardTask: React.FC<CardTaskProps> = memo(
     const [wantToclose, setWantToClose] = useState(false);
 
     const dragGesture = Gesture.Pan()
+      .minDistance(widthPercentageToDP(8))
       .onUpdate(e => {
         offsetX.value = e.translationX;
       })

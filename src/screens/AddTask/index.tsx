@@ -1,8 +1,16 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {Platform, StyleSheet, TextInput, View} from 'react-native';
+import {addDoc, collection} from 'firebase/firestore';
+import React, {useCallback, useState} from 'react';
+import {
+  ActivityIndicator,
+  Platform,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {fireStore} from '../../../firebase';
 import {Fab} from '../../components/Fab';
 import {Icon} from '../../components/Icon';
 import {NavigationProps} from '../../components/Router';
@@ -78,6 +86,24 @@ const AddTaskScreen: React.FC = () => {
   const styles = useStyles(theme);
   const [sizeIconColor, setSizeIconColor] = useState(0);
 
+  const colors = ['#F3FEB0', '#FEA443', '#705E78', '#812F33'];
+
+  const [title, setTitle] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const saveNewTask = useCallback(async () => {
+    try {
+      setLoading(true);
+      await addDoc(collection(fireStore, 'tasks'), {
+        title,
+        colorTask: colors[1],
+      });
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  }, [title]);
+
   return (
     <SafeAreaView style={styles.container}>
       <Fab
@@ -104,6 +130,7 @@ const AddTaskScreen: React.FC = () => {
           placeholder="Digite a tarefa"
           style={[getFontWeight('regular'), styles.textInput]}
           placeholderTextColor={theme.palette.primary.computed}
+          onChangeText={text => setTitle(text)}
         />
       </View>
 
@@ -138,15 +165,23 @@ const AddTaskScreen: React.FC = () => {
           size={Platform.select({
             android: widthPercentageToDP(13),
             ios: widthPercentageToDP(17),
-          })}>
-          <Typography style={{fontSize: widthPercentageToDP(7), color: '#fff'}}>
-            Nova tarefa
-          </Typography>
-          <Icon
-            style={[styles.icon, {color: '#fff'}]}
-            type="feather"
-            name="chevron-up"
-          />
+          })}
+          onPress={saveNewTask}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Typography
+                style={{fontSize: widthPercentageToDP(7), color: '#fff'}}>
+                Nova tarefa
+              </Typography>
+              <Icon
+                style={[styles.icon, {color: '#fff'}]}
+                type="feather"
+                name="chevron-up"
+              />
+            </>
+          )}
         </Fab>
       </View>
     </SafeAreaView>

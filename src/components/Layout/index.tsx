@@ -21,6 +21,7 @@ const useStyles = (theme: Theme) =>
       backgroundColor: theme.palette.background.default.computed,
       flex: 1,
       position: 'relative',
+      overflow: 'hidden',
     },
     buttonAdd: {
       position: 'absolute',
