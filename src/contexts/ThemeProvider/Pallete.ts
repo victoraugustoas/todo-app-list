@@ -89,13 +89,16 @@ export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
       },
       paletteType: paletteOptions?.type,
     }),
-    secondary: {
-      light: '',
-      dark: '',
-      computed: '',
-      other: [],
-      ...paletteOptions?.secondary,
-    },
+    secondary: computeColor({
+      color: {
+        light: '#006DFF',
+        dark: darken('#006DFF', 0.7),
+        computed: '',
+        other: [],
+        ...paletteOptions?.primary,
+      },
+      paletteType: paletteOptions?.type,
+    }),
     brightness: {
       light: '',
       dark: '',

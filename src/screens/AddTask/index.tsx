@@ -1,10 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {Platform, StyleSheet, TextInput, View} from 'react-native';
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from 'react-native-responsive-screen';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Fab} from '../../components/Fab';
 import {Icon} from '../../components/Icon';
@@ -19,6 +16,7 @@ const useStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.palette.background.default.computed,
       justifyContent: 'space-evenly',
+      paddingHorizontal: widthPercentageToDP(6),
     },
     textInput: {
       fontSize: widthPercentageToDP(14),
@@ -53,7 +51,7 @@ const useStyles = (theme: Theme) =>
       padding: widthPercentageToDP(1),
     },
     submitButton: {
-      width: widthPercentageToDP(35),
+      width: widthPercentageToDP(45),
 
       flexDirection: 'row',
       alignItems: 'center',
@@ -62,13 +60,13 @@ const useStyles = (theme: Theme) =>
 
       padding: widthPercentageToDP(4),
 
-      backgroundColor: '#006DFF',
+      backgroundColor: theme.palette.secondary.computed,
       borderWidth: 0,
 
       ...Platform.select({
         android: {
           elevation: 4,
-          shadowColor: '#006DFF',
+          shadowColor: theme.palette.secondary.computed,
         },
       }),
     },
@@ -139,9 +137,9 @@ const AddTaskScreen: React.FC = () => {
           style={styles.submitButton}
           size={Platform.select({
             android: widthPercentageToDP(13),
-            ios: widthPercentageToDP(15),
+            ios: widthPercentageToDP(17),
           })}>
-          <Typography style={{fontSize: widthPercentageToDP(6), color: '#fff'}}>
+          <Typography style={{fontSize: widthPercentageToDP(7), color: '#fff'}}>
             Nova tarefa
           </Typography>
           <Icon
