@@ -1,11 +1,10 @@
-import {collection, getDocs} from 'firebase/firestore';
+import {collection, onSnapshot, query} from 'firebase/firestore';
 import React, {useEffect, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {fireStore} from '../../../firebase';
 import {CardTask} from '../../components/CardTask';
 import {Layout} from '../../components/Layout';
-import {useFetchData} from '../../hooks/FetchData';
 
 interface ITask {
   id: string;
@@ -14,21 +13,19 @@ interface ITask {
 }
 
 const HomeScreen: React.FC = () => {
-  const fetchTasks = useFetchData(() =>
-    getDocs(collection(fireStore, 'tasks')),
-  );
-
   const [tasks, setTasks] = useState<ITask[]>([]);
 
   useEffect(() => {
-    fetchTasks.value?.forEach(task => {
-      const taskFormatted: ITask = {
-        ...(task.data() as ITask),
-        id: task.id,
-      };
-      setTasks(old => [...old, taskFormatted]);
+    const q = query(collection(fireStore, 'tasks'));
+    const unsubscribe = onSnapshot(q, querySnapshot => {
+      const tasks: ITask[] = [];
+      querySnapshot.forEach(doc => {
+        tasks.push({...(doc.data() as ITask), id: doc.id});
+      });
+      setTasks(tasks);
     });
-  }, [fetchTasks.value]);
+    return () => unsubscribe();
+  }, []);
 
   const [selectedTask, setSelectedTasks] = useState<{
     [propID: string]: boolean;

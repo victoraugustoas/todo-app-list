@@ -1,3 +1,4 @@
+import {diff} from 'deep-diff';
 import React, {memo, useEffect, useState} from 'react';
 import {StyleSheet, View, ViewProps} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -105,6 +106,9 @@ const CardTask: React.FC<CardTaskProps> = memo(
       .onEnd(e => {
         const dest = snapPoint(offsetX.value, e.velocityX, SNAP_POINTS);
         offsetX.value = withSpring(dest, {velocity: e.velocityX});
+        if (!onDimiss) {
+          offsetX.value = withSpring(0, {velocity: e.velocityX});
+        }
       });
     const tap = Gesture.Tap().onStart(() => {
       onPress && runOnJS(onPress)();
@@ -164,8 +168,15 @@ const CardTask: React.FC<CardTaskProps> = memo(
       </View>
     );
   },
-  (prev, next) => {
-    return prev.selected === next.selected;
+  (prevState, nextState) => {
+    const diffState = diff(prevState, nextState);
+    const filtered = diffState?.filter(diff => {
+      const diffPath = diff.path?.filter(
+        path => !['onPress', 'onDimiss'].some(value => value === path),
+      );
+      return diffPath ? diffPath.length > 0 : false;
+    });
+    return filtered?.length === 0;
   },
 );
 
