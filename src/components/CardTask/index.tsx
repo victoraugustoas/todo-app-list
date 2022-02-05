@@ -12,9 +12,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import {snapPoint} from 'react-native-redash';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
+import {LoadingDimiss} from './LoadingDimiss';
 import {Task} from './Task';
 import {UndoAction} from './UndoAction';
 
@@ -71,14 +73,22 @@ const styles = StyleSheet.create({
   undoAction: {
     position: 'absolute',
     width: '100%',
+    zIndex: 1,
+  },
+  loadingDimiss: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
     zIndex: -1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
 export interface CardTaskProps extends ViewProps {
   title: string;
   selected?: boolean;
-  onDimiss?: () => void;
+  onDimiss?: () => Promise<void>;
   onPress?: () => void;
   timeoutToClose?: number;
   colorTask: string;
@@ -97,6 +107,7 @@ const CardTask: React.FC<CardTaskProps> = memo(
     const offsetX = useSharedValue(0);
     const totalOffsetX = -widthPercentageToDP(100);
     const SNAP_POINTS = [totalOffsetX, 0];
+    const waitingOnDimiss = useSharedValue(0);
     const [wantToclose, setWantToClose] = useState(false);
 
     const dragGesture = Gesture.Pan()
@@ -117,11 +128,18 @@ const CardTask: React.FC<CardTaskProps> = memo(
     const gesture = Gesture.Race(dragGesture, tap);
 
     const swipeToDimiss = useAnimatedStyle(() => ({
+      zIndex: 2,
       transform: [{translateX: offsetX.value}],
       opacity: interpolate(offsetX.value, [0, totalOffsetX], [1, 0]),
     }));
     const undoActionAnim = useAnimatedStyle(() => ({
-      opacity: interpolate(offsetX.value, [0, totalOffsetX], [0, 1]),
+      opacity:
+        waitingOnDimiss.value === 0
+          ? interpolate(offsetX.value, [0, totalOffsetX], [0, 1])
+          : interpolate(offsetX.value, [0, totalOffsetX], [1, 0]),
+    }));
+    const loadingAnim = useAnimatedStyle(() => ({
+      opacity: withTiming(waitingOnDimiss.value),
     }));
 
     // call close function
@@ -136,8 +154,14 @@ const CardTask: React.FC<CardTaskProps> = memo(
     useEffect(() => {
       let timeoutToDimiss: NodeJS.Timeout | null = null;
       if (wantToclose) {
-        timeoutToDimiss = setTimeout(() => {
-          onDimiss && onDimiss();
+        timeoutToDimiss = setTimeout(async () => {
+          if (!onDimiss) return;
+          try {
+            waitingOnDimiss.value = 1;
+            await onDimiss();
+          } catch (error) {
+            waitingOnDimiss.value = 0;
+          }
         }, timeoutToClose);
       }
       return () => {
@@ -155,16 +179,19 @@ const CardTask: React.FC<CardTaskProps> = memo(
             <Task selected={selected} title={title} colorTask={colorTask} />
           </Animated.View>
         </GestureDetector>
-        <Animated.View
-          layout={Layout}
-          exiting={FadeOut}
-          style={[undoActionAnim, styles.undoAction]}>
+        <Animated.View style={[undoActionAnim, styles.undoAction]}>
           <UndoAction
             onUndo={() => {
-              offsetX.value = 0;
+              offsetX.value = withSpring(0);
               setWantToClose(false);
             }}
           />
+        </Animated.View>
+        <Animated.View
+          style={[styles.loadingDimiss, loadingAnim]}
+          layout={Layout}
+          exiting={FadeOut}>
+          <LoadingDimiss />
         </Animated.View>
       </View>
     );

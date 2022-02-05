@@ -1,5 +1,11 @@
-import {collection, onSnapshot, query} from 'firebase/firestore';
-import React, {useEffect, useState} from 'react';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+} from 'firebase/firestore';
+import React, {useCallback, useEffect, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {fireStore} from '../../../firebase';
@@ -31,6 +37,16 @@ const HomeScreen: React.FC = () => {
     [propID: string]: boolean;
   }>({});
 
+  const deleteTask = useCallback(async (task: ITask) => {
+    try {
+      // await deleteDoc(doc(fireStore, 'tasks', task.id));
+      await deleteDoc(doc(fireStore, 'tasks', task.id));
+    } catch (error) {
+      console.log('🚀 ~ file: index.tsx ~ line 44 ~ deleteTask ~ error', error);
+    } finally {
+    }
+  }, []);
+
   return (
     <Layout showAddButton>
       <View style={{marginHorizontal: widthPercentageToDP(3)}}>
@@ -50,13 +66,7 @@ const HomeScreen: React.FC = () => {
                     [task.id]: old[task.id] ? !old[task.id] : true,
                   }))
                 }
-                // onDimiss={() => {
-                //   setTasks(oldState => {
-                //     const copyOldState = [...oldState];
-                //     copyOldState.splice(idx, 1);
-                //     return copyOldState;
-                //   });
-                // }}
+                onDimiss={() => deleteTask(task)}
                 colorTask={task.colorTask}
               />
             );
