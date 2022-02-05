@@ -5,23 +5,15 @@ import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {fireStore} from '../../../firebase';
 import {CardTask} from '../../components/CardTask';
 import {Layout} from '../../components/Layout';
-import {useAuth} from '../../contexts/Auth';
 import {useIoCContext} from '../../contexts/IoCContext';
 import {Types} from '../../ioc/types';
-import {ITaskService} from '../../modules/tasks/models/ITaskService';
-
-interface ITask {
-  id: string;
-  title: string;
-  colorTask: string;
-  selected: boolean;
-}
+import {ITaskService, Task} from '../../modules/tasks/models/ITaskService';
 
 const HomeScreen: React.FC = () => {
-  const [tasks, setTasks] = useState<ITask[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const auth = useAuth();
   const iocContext = useIoCContext();
+  console.log('🚀 ~ file: index.tsx ~ line 15 ~ tasks', tasks);
 
   const taskService = iocContext.serviceContainer.get<ITaskService>(
     Types.Task.ITaskService,
@@ -32,11 +24,7 @@ const HomeScreen: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const [selectedTask, setSelectedTasks] = useState<{
-    [propID: string]: boolean;
-  }>({});
-
-  const deleteTask = useCallback(async (task: ITask) => {
+  const deleteTask = useCallback(async (task: Task) => {
     try {
       await deleteDoc(doc(fireStore, 'tasks', task.id));
     } catch (error) {
@@ -45,7 +33,7 @@ const HomeScreen: React.FC = () => {
     }
   }, []);
 
-  const completeTask = useCallback(async (task: ITask) => {
+  const completeTask = useCallback(async (task: Task) => {
     try {
       await updateDoc(doc(fireStore, 'tasks', task.id), {
         selected: !Boolean(task.selected),
@@ -71,7 +59,7 @@ const HomeScreen: React.FC = () => {
                 selected={task.selected}
                 onPress={() => completeTask(task)}
                 onDimiss={() => deleteTask(task)}
-                colorTask={task.colorTask}
+                colorTask={task.category.colorCategory}
               />
             );
           }}

@@ -1,5 +1,4 @@
 import {useNavigation} from '@react-navigation/native';
-import {serverTimestamp} from 'firebase/firestore';
 import React, {useCallback, useState} from 'react';
 import {
   ActivityIndicator,
@@ -94,8 +93,6 @@ const AddTaskScreen: React.FC = () => {
     Types.Task.ITaskService,
   );
 
-  const colors = ['#F3FEB0', '#FEA443', '#705E78', '#812F33'];
-
   const [sizeIconColor, setSizeIconColor] = useState(0);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
@@ -103,14 +100,10 @@ const AddTaskScreen: React.FC = () => {
   const saveNewTask = useCallback(async () => {
     try {
       setLoading(true);
-      await taskService.save({
-        colorTask: colors[0],
-        createdAt: serverTimestamp() as unknown as Date,
-        selected: false,
-        title,
-      });
+      await taskService.save({categoryID: 'qwEbM2Y43utdPI3BtQ33', title});
       router.goBack();
     } catch (error) {
+    console.log("🚀 ~ file: index.tsx ~ line 106 ~ saveNewTask ~ error", error)
     } finally {
       setLoading(false);
     }
