@@ -1,18 +1,14 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  updateDoc,
-} from 'firebase/firestore';
+import {deleteDoc, doc, serverTimestamp, updateDoc} from 'firebase/firestore';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {fireStore} from '../../../firebase';
 import {CardTask} from '../../components/CardTask';
 import {Layout} from '../../components/Layout';
+import {useAuth} from '../../contexts/Auth';
+import {useIoCContext} from '../../contexts/IoCContext';
+import {Types} from '../../ioc/types';
+import {ITaskService} from '../../modules/tasks/models/ITaskService';
 
 interface ITask {
   id: string;
@@ -23,16 +19,16 @@ interface ITask {
 
 const HomeScreen: React.FC = () => {
   const [tasks, setTasks] = useState<ITask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const auth = useAuth();
+  const iocContext = useIoCContext();
+
+  const taskService = iocContext.serviceContainer.get<ITaskService>(
+    Types.Task.ITaskService,
+  );
 
   useEffect(() => {
-    const q = query(collection(fireStore, 'tasks'));
-    const unsubscribe = onSnapshot(q, querySnapshot => {
-      const tasks: ITask[] = [];
-      querySnapshot.forEach(doc => {
-        tasks.push({...(doc.data() as ITask), id: doc.id});
-      });
-      setTasks(tasks);
-    });
+    const unsubscribe = taskService.listTasks({setTasks});
     return () => unsubscribe();
   }, []);
 

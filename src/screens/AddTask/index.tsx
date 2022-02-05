@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import {addDoc, collection} from 'firebase/firestore';
+import {serverTimestamp} from 'firebase/firestore';
 import React, {useCallback, useState} from 'react';
 import {
   ActivityIndicator,
@@ -10,13 +10,16 @@ import {
 } from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fireStore} from '../../../firebase';
 import {Fab} from '../../components/Fab';
 import {Icon} from '../../components/Icon';
 import {NavigationProps} from '../../components/Router';
 import {getFontWeight, Typography} from '../../components/Typography';
+import {useAuth} from '../../contexts/Auth';
+import {useIoCContext} from '../../contexts/IoCContext';
 import {useTheme} from '../../contexts/ThemeProvider';
 import {Theme} from '../../contexts/ThemeProvider/Theme';
+import {Types} from '../../ioc/types';
+import {ITaskService} from '../../modules/tasks/models/ITaskService';
 
 const useStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -84,20 +87,29 @@ const AddTaskScreen: React.FC = () => {
   const router = useNavigation<NavigationProps>();
   const theme = useTheme();
   const styles = useStyles(theme);
-  const [sizeIconColor, setSizeIconColor] = useState(0);
+  const auth = useAuth();
+  const iocContext = useIoCContext();
+
+  const taskService = iocContext.serviceContainer.get<ITaskService>(
+    Types.Task.ITaskService,
+  );
 
   const colors = ['#F3FEB0', '#FEA443', '#705E78', '#812F33'];
 
+  const [sizeIconColor, setSizeIconColor] = useState(0);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
 
   const saveNewTask = useCallback(async () => {
     try {
       setLoading(true);
-      await addDoc(collection(fireStore, 'tasks'), {
+      await taskService.save({
+        colorTask: colors[0],
+        createdAt: serverTimestamp() as unknown as Date,
+        selected: false,
         title,
-        colorTask: colors[1],
       });
+      router.goBack();
     } catch (error) {
     } finally {
       setLoading(false);
