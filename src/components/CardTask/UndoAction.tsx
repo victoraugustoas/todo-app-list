@@ -1,6 +1,8 @@
 import React from 'react';
 import {StyleSheet, TouchableOpacity, View} from 'react-native';
+import Animated, {SharedValue, useAnimatedProps} from 'react-native-reanimated';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
+import Svg, {Circle} from 'react-native-svg';
 import Icon from 'react-native-vector-icons/Feather';
 import {useTheme} from '../../contexts/ThemeProvider';
 import {Theme} from '../../contexts/ThemeProvider/Theme';
@@ -38,16 +40,30 @@ const useStyles = (theme: Theme) =>
       borderRadius: widthPercentageToDP(4),
       paddingVertical: widthPercentageToDP(0.5),
       paddingHorizontal: widthPercentageToDP(2),
+
+      flexDirection: 'row',
+      alignItems: 'center',
     },
   });
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
 export interface UndoActionProps {
   onUndo: () => void;
+  progress: SharedValue<number>;
 }
 
-const UndoAction: React.FC<UndoActionProps> = ({onUndo}) => {
+const UndoAction: React.FC<UndoActionProps> = ({onUndo, progress}) => {
   const theme = useTheme();
   const styles = useStyles(theme);
+
+  const circleSize = widthPercentageToDP(11);
+  const radius = circleSize / (2 * Math.PI);
+  const sizeSvg = widthPercentageToDP(6);
+
+  const animatedCircleProps = useAnimatedProps(() => ({
+    strokeDashoffset: circleSize * (1 - progress.value),
+  }));
 
   return (
     <View style={styles.container}>
@@ -60,6 +76,37 @@ const UndoAction: React.FC<UndoActionProps> = ({onUndo}) => {
         <Typography style={styles.textButton} fontWeight="bold">
           Desfazer
         </Typography>
+
+        <Svg
+          style={{
+            width: widthPercentageToDP(6),
+            height: widthPercentageToDP(6),
+          }}>
+          <Circle
+            cx={sizeSvg / 2}
+            cy={sizeSvg / 2}
+            r={radius}
+            stroke={theme.palette.hexToRGBA(
+              theme.palette.background.drawer.dark,
+              0.5,
+            )}
+            strokeWidth={2}
+          />
+
+          <AnimatedCircle
+            cx={sizeSvg / 2}
+            cy={sizeSvg / 2}
+            r={radius}
+            stroke={
+              theme.palette.type === 'light'
+                ? theme.palette.background.default.light
+                : theme.palette.secondary.computed
+            }
+            strokeWidth={2}
+            strokeDasharray={circleSize}
+            animatedProps={animatedCircleProps}
+          />
+        </Svg>
       </TouchableOpacity>
     </View>
   );

@@ -108,6 +108,7 @@ const CardTask: React.FC<CardTaskProps> = memo(
     const totalOffsetX = -widthPercentageToDP(100);
     const SNAP_POINTS = [totalOffsetX, 0];
     const waitingOnDimiss = useSharedValue(0);
+    const progressToUndo = useSharedValue(0);
     const [wantToclose, setWantToClose] = useState(false);
 
     const dragGesture = Gesture.Pan()
@@ -117,7 +118,7 @@ const CardTask: React.FC<CardTaskProps> = memo(
       })
       .onEnd(e => {
         const dest = snapPoint(offsetX.value, e.velocityX, SNAP_POINTS);
-        offsetX.value = withSpring(dest, {velocity: e.velocityX});
+        offsetX.value = withTiming(dest);
         if (!onDimiss) {
           offsetX.value = withSpring(0, {velocity: e.velocityX});
         }
@@ -163,6 +164,7 @@ const CardTask: React.FC<CardTaskProps> = memo(
             waitingOnDimiss.value = 0;
           }
         }, timeoutToClose);
+        progressToUndo.value = withTiming(1, {duration: timeoutToClose});
       }
       return () => {
         if (timeoutToDimiss) clearTimeout(timeoutToDimiss);
@@ -184,7 +186,9 @@ const CardTask: React.FC<CardTaskProps> = memo(
             onUndo={() => {
               offsetX.value = withSpring(0);
               setWantToClose(false);
+              progressToUndo.value = withTiming(0);
             }}
+            progress={progressToUndo}
           />
         </Animated.View>
         <Animated.View
