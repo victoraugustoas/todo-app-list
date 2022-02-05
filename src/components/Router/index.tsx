@@ -12,13 +12,18 @@ import {
 } from '@react-navigation/native-stack';
 import React from 'react';
 import {View} from 'react-native';
+import {useAuth} from '../../contexts/Auth';
 import {AddTaskScreen} from '../../screens/AddTask';
 import {HomeScreen} from '../../screens/Home';
+import {LoginScreen} from '../../screens/Login';
 import {DrawerLeft} from '../DrawerLeft';
 
 export type AppRoutes = {
   Initial: undefined;
   AddTask: undefined;
+};
+export type AuthRoutes = {
+  Login: undefined;
 };
 export type HomeRoutes = {
   Home: undefined;
@@ -30,6 +35,7 @@ export type NavigationProps = CompositeNavigationProp<
 >;
 
 const AppStack = createNativeStackNavigator<AppRoutes>();
+const AuthStack = createNativeStackNavigator<AuthRoutes>();
 const Drawer = createDrawerNavigator<HomeRoutes>();
 
 const HomeNavigation: React.FC = () => {
@@ -49,21 +55,31 @@ const HomeNavigation: React.FC = () => {
 };
 
 const AppNavigator = () => {
+  const auth = useAuth();
+
   return (
-    <AppStack.Navigator screenOptions={{headerShown: false}}>
-      <AppStack.Screen
-        name="Initial"
-        component={HomeNavigation}
-        options={{
-          contentStyle: {backgroundColor: 'transparent'},
-        }}
-      />
-      <AppStack.Screen
-        component={AddTaskScreen}
-        name="AddTask"
-        options={{presentation: 'modal', animation: 'fade_from_bottom'}}
-      />
-    </AppStack.Navigator>
+    <AuthStack.Navigator screenOptions={{headerShown: false}}>
+      {auth.user ? (
+        <AppStack.Group>
+          <AppStack.Screen
+            name="Initial"
+            component={HomeNavigation}
+            options={{
+              contentStyle: {backgroundColor: 'transparent'},
+            }}
+          />
+          <AppStack.Screen
+            component={AddTaskScreen}
+            name="AddTask"
+            options={{presentation: 'modal', animation: 'fade_from_bottom'}}
+          />
+        </AppStack.Group>
+      ) : (
+        <AuthStack.Group>
+          <AuthStack.Screen name="Login" component={LoginScreen} />
+        </AuthStack.Group>
+      )}
+    </AuthStack.Navigator>
   );
 };
 

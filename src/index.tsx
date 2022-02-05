@@ -2,6 +2,7 @@ import React from 'react';
 import {useColorScheme} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Router} from './components/Router';
+import {AuthContext, AuthProvider} from './contexts/Auth';
 import {ThemeProvider} from './contexts/ThemeProvider';
 
 const AppContainer: React.FC = () => {
@@ -9,9 +10,11 @@ const AppContainer: React.FC = () => {
 
   return (
     <ThemeProvider theme={{palette: {type: color ? color : 'light'}}}>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <Router />
-      </GestureHandlerRootView>
+      <AuthProvider>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <Router />
+        </GestureHandlerRootView>
+      </AuthProvider>
     </ThemeProvider>
   );
 };
