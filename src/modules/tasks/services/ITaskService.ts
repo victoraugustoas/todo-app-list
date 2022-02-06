@@ -2,9 +2,7 @@ import {Auth, Unsubscribe} from 'firebase/auth';
 import {
   addDoc,
   collection,
-  doc,
   Firestore,
-  getDoc,
   onSnapshot,
   query,
   serverTimestamp,
@@ -12,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import {inject, injectable} from 'inversify';
 import {Types} from '../../../ioc/types';
+import {ICategoryService} from '../../categories/models/ICategoryService';
 import {IParamTask, ITaskService, Task} from '../models/ITaskService';
 
 @injectable()
@@ -20,6 +19,8 @@ export class TaskService implements ITaskService {
   private fireStore!: Firestore;
   @inject(Types.FirebaseAuth)
   private auth!: Auth;
+  @inject(Types.Category.ICategoryService)
+  private categoryService!: ICategoryService;
 
   private mountTask(data: IParamTask) {
     if (!this.auth.currentUser) throw new Error('User not logged');
@@ -53,10 +54,10 @@ export class TaskService implements ITaskService {
 
       const hidrate = await Promise.all(
         tasks.map(async task => {
-          const category = await getDoc(
-            doc(this.fireStore, 'categories', task.category.id),
-          );
-          return {...task, category: {...task.category, ...category.data()}};
+          const category = await this.categoryService.getCategory({
+            categoryID: task.category.id,
+          });
+          return {...task, category};
         }),
       );
 

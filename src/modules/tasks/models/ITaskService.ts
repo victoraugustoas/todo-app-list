@@ -1,10 +1,5 @@
 import {Unsubscribe} from 'firebase/auth';
-
-export interface Category {
-  title: string;
-  colorCategory: string;
-  id: string;
-}
+import {Category} from '../../categories/models/ICategoryService';
 
 export interface Task {
   id: string;
