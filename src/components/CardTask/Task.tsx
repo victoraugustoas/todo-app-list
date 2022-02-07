@@ -152,7 +152,9 @@ const Task: React.FC<TaskProps> = ({selected, title, colorTask, ...props}) => {
             }}
             transition={{type: 'timing'}}
           />
-          <Typography style={styles.title}>{title}</Typography>
+          <Typography style={styles.title} numberOfLines={1}>
+            {title}
+          </Typography>
         </View>
       </View>
     </TouchableOpacity>
