@@ -13,8 +13,8 @@ import {Fab} from '../../components/Fab';
 import {Icon} from '../../components/Icon';
 import {NavigationProps} from '../../components/Router';
 import {getFontWeight, Typography} from '../../components/Typography';
-import {useAuth} from '../../contexts/Auth';
 import {useIoCContext} from '../../contexts/IoCContext';
+import {useSnack} from '../../contexts/Snack';
 import {useTheme} from '../../contexts/ThemeProvider';
 import {Theme} from '../../contexts/ThemeProvider/Theme';
 import {Types} from '../../ioc/types';
@@ -86,8 +86,8 @@ const AddTaskScreen: React.FC = () => {
   const router = useNavigation<NavigationProps>();
   const theme = useTheme();
   const styles = useStyles(theme);
-  const auth = useAuth();
   const iocContext = useIoCContext();
+  const snack = useSnack();
 
   const taskService = iocContext.serviceContainer.get<ITaskService>(
     Types.Task.ITaskService,
@@ -103,7 +103,10 @@ const AddTaskScreen: React.FC = () => {
       await taskService.save({categoryID: 'qwEbM2Y43utdPI3BtQ33', title});
       router.goBack();
     } catch (error) {
-    console.log("🚀 ~ file: index.tsx ~ line 106 ~ saveNewTask ~ error", error)
+      snack.addNotification({
+        title: 'Ocorreu um erro ao adicionar nova tarefa',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }

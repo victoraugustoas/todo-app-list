@@ -4,6 +4,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Router} from './components/Router';
 import {AuthProvider} from './contexts/Auth';
 import {IoCProvider} from './contexts/IoCContext';
+import {SnackProvider} from './contexts/Snack';
 import {ThemeProvider} from './contexts/ThemeProvider';
 
 const AppContainer: React.FC = () => {
@@ -12,11 +13,13 @@ const AppContainer: React.FC = () => {
   return (
     <IoCProvider>
       <ThemeProvider theme={{palette: {type: color ? color : 'light'}}}>
-        <AuthProvider>
-          <GestureHandlerRootView style={{flex: 1}}>
-            <Router />
-          </GestureHandlerRootView>
-        </AuthProvider>
+        <SnackProvider>
+          <AuthProvider>
+            <GestureHandlerRootView style={{flex: 1}}>
+              <Router />
+            </GestureHandlerRootView>
+          </AuthProvider>
+        </SnackProvider>
       </ThemeProvider>
     </IoCProvider>
   );

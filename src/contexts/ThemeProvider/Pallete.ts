@@ -17,7 +17,7 @@ export interface BackgroundColor {
 export interface Palette {
   primary: Color;
   secondary: Color;
-  brightness: Color;
+  error: Color;
   other: string[];
   hexToRGBA: (hex: string, alpha: number | string) => string;
   lighten: (hex: string, value: number) => string;
@@ -99,13 +99,6 @@ export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
       },
       paletteType: paletteOptions?.type,
     }),
-    brightness: {
-      light: '',
-      dark: '',
-      computed: '',
-      other: [],
-      ...paletteOptions?.brightness,
-    },
     background: {
       drawer: computeColor({
         paletteType: paletteOptions?.type,
@@ -128,6 +121,16 @@ export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
         },
       }),
     },
+    error: computeColor({
+      color: {
+        computed: '',
+        dark: '#A71C1C',
+        light: lighten('#A71C1C', 0.8),
+        other: [],
+        ...paletteOptions?.error,
+      },
+      paletteType: paletteOptions?.type,
+    }),
     other: [],
     type: 'light',
     hexToRGBA,
