@@ -4,6 +4,7 @@ import {
   collection,
   Firestore,
   onSnapshot,
+  orderBy,
   query,
   serverTimestamp,
   where,
@@ -39,6 +40,7 @@ export class TaskService implements ITaskService {
   listTasks(data: {setTasks: (tasks: Task[]) => void}): Unsubscribe {
     const q = query(
       collection(this.fireStore, 'tasks'),
+      orderBy('createdAt', 'desc'),
       where('userID', '==', this.auth.currentUser?.uid),
     );
 
