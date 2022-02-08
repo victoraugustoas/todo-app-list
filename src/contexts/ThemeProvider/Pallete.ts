@@ -18,6 +18,7 @@ export interface Palette {
   primary: Color;
   secondary: Color;
   error: Color;
+  success: Color;
   other: string[];
   hexToRGBA: (hex: string, alpha: number | string) => string;
   lighten: (hex: string, value: number) => string;
@@ -126,6 +127,16 @@ export const createPalette = (paletteOptions?: PaletteOptions): Palette => {
         computed: '',
         dark: '#A71C1C',
         light: lighten('#A71C1C', 0.8),
+        other: [],
+        ...paletteOptions?.error,
+      },
+      paletteType: paletteOptions?.type,
+    }),
+    success: computeColor({
+      color: {
+        computed: '',
+        dark: '#3EB595',
+        light: lighten('#3EB595', 0.8),
         other: [],
         ...paletteOptions?.error,
       },

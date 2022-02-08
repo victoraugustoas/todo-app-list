@@ -154,7 +154,9 @@ const AddTaskScreen: React.FC = () => {
           </Typography>
         </Fab>
 
-        <Fab variant="outlined">
+        <Fab
+          variant="outlined"
+          onPress={() => router.navigate('SelectCategory')}>
           <View style={styles.iconBorder}>
             <View
               style={[styles.iconColor, {borderRadius: sizeIconColor / 2}]}

@@ -14,6 +14,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useAuth} from '../../contexts/Auth';
 import {AddTaskScreen} from '../../screens/AddTask';
+import {SelectCategoryModal} from '../../screens/AddTask/SelectCategory';
 import {HomeScreen} from '../../screens/Home';
 import {LoginScreen} from '../../screens/Login';
 import {DrawerLeft} from '../DrawerLeft';
@@ -21,6 +22,7 @@ import {DrawerLeft} from '../DrawerLeft';
 export type AppRoutes = {
   Initial: undefined;
   AddTask: undefined;
+  SelectCategory: undefined;
 };
 export type AuthRoutes = {
   Login: undefined;
@@ -71,6 +73,11 @@ const AppNavigator = () => {
           <AppStack.Screen
             component={AddTaskScreen}
             name="AddTask"
+            options={{presentation: 'modal', animation: 'fade_from_bottom'}}
+          />
+          <AppStack.Screen
+            component={SelectCategoryModal}
+            name="SelectCategory"
             options={{presentation: 'modal', animation: 'fade_from_bottom'}}
           />
         </AppStack.Group>
