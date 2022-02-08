@@ -50,11 +50,12 @@ const HomeScreen: React.FC = () => {
         <FlatList
           data={tasks}
           keyExtractor={task => task.id}
-          renderItem={({item: task}) => {
+          renderItem={({item: task, index}) => {
             return (
               <CardTask
-                style={{marginVertical: widthPercentageToDP(1.2)}}
                 key={task.id}
+                index={index}
+                style={{marginVertical: widthPercentageToDP(1.2)}}
                 title={task.title}
                 selected={task.selected}
                 onPress={() => completeTask(task)}

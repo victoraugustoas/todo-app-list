@@ -3,16 +3,17 @@ import React, {memo, useEffect, useState} from 'react';
 import {StyleSheet, View, ViewProps} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
-  FadeOut,
   interpolate,
   Layout,
   runOnJS,
   SlideInLeft,
+  SlideOutRight,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
+  ZoomOut,
 } from 'react-native-reanimated';
 import {snapPoint} from 'react-native-redash';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
@@ -92,6 +93,7 @@ export interface CardTaskProps extends ViewProps {
   onPress?: () => void;
   timeoutToClose?: number;
   colorTask: string;
+  index: number;
 }
 
 const CardTask: React.FC<CardTaskProps> = memo(
@@ -102,6 +104,7 @@ const CardTask: React.FC<CardTaskProps> = memo(
     onPress,
     timeoutToClose = 3000,
     colorTask,
+    index,
     ...props
   }) => {
     const offsetX = useSharedValue(0);
@@ -172,32 +175,31 @@ const CardTask: React.FC<CardTaskProps> = memo(
     }, [wantToclose]);
 
     return (
-      <View {...props} style={[props.style, {position: 'relative'}]}>
-        <GestureDetector gesture={gesture}>
-          <Animated.View
-            entering={SlideInLeft}
-            layout={Layout}
-            style={swipeToDimiss}>
-            <Task selected={selected} title={title} colorTask={colorTask} />
+      <Animated.View
+        entering={SlideInLeft}
+        exiting={ZoomOut}
+        layout={Layout.delay(350 * index).springify()}>
+        <View {...props} style={[props.style, {position: 'relative'}]}>
+          <GestureDetector gesture={gesture}>
+            <Animated.View style={swipeToDimiss}>
+              <Task selected={selected} title={title} colorTask={colorTask} />
+            </Animated.View>
+          </GestureDetector>
+          <Animated.View style={[undoActionAnim, styles.undoAction]}>
+            <UndoAction
+              onUndo={() => {
+                offsetX.value = withSpring(0);
+                setWantToClose(false);
+                progressToUndo.value = withTiming(0);
+              }}
+              progress={progressToUndo}
+            />
           </Animated.View>
-        </GestureDetector>
-        <Animated.View style={[undoActionAnim, styles.undoAction]}>
-          <UndoAction
-            onUndo={() => {
-              offsetX.value = withSpring(0);
-              setWantToClose(false);
-              progressToUndo.value = withTiming(0);
-            }}
-            progress={progressToUndo}
-          />
-        </Animated.View>
-        <Animated.View
-          style={[styles.loadingDimiss, loadingAnim]}
-          layout={Layout}
-          exiting={FadeOut}>
-          <LoadingDimiss />
-        </Animated.View>
-      </View>
+          <Animated.View style={[styles.loadingDimiss, loadingAnim]}>
+            <LoadingDimiss />
+          </Animated.View>
+        </View>
+      </Animated.View>
     );
   },
   (prevState, nextState) => {
