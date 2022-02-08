@@ -1,6 +1,8 @@
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -12,13 +14,17 @@ import Animated, {Layout, ZoomIn, ZoomOut} from 'react-native-reanimated';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Icon} from '../../components/Icon';
+import {AppRoutes, NavigationProps} from '../../components/Router';
 import {getFontWeight, Typography} from '../../components/Typography';
 import {useIoCContext} from '../../contexts/IoCContext';
 import {useTheme} from '../../contexts/ThemeProvider';
 import {Theme} from '../../contexts/ThemeProvider/Theme';
 import {useFetchData} from '../../hooks/FetchData';
 import {Types} from '../../ioc/types';
-import {ICategoryService} from '../../modules/categories/models/ICategoryService';
+import {
+  Category,
+  ICategoryService,
+} from '../../modules/categories/models/ICategoryService';
 
 const useStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -88,6 +94,9 @@ const SelectCategoryModal: React.FC = () => {
   const iocContext = useIoCContext();
   const theme = useTheme();
   const styles = useStyles(theme);
+  const router = useNavigation<NavigationProps>();
+  const route =
+    useRoute<NativeStackScreenProps<AppRoutes, 'SelectCategory'>['route']>();
 
   const categoryService = iocContext.serviceContainer.get<ICategoryService>(
     Types.Category.ICategoryService,
@@ -99,9 +108,16 @@ const SelectCategoryModal: React.FC = () => {
 
   const fetchCategories = useFetchData(() => categoryService.list());
 
+  const selectCategory = useCallback((category: Category) => {
+    return () => {
+      route.params.onGoBack(category);
+      router.goBack();
+    };
+  }, []);
+
   return (
-    <SafeAreaView style={styles.screenContainer}>
-      <ScrollView contentContainerStyle={{flex: 1}}>
+    <SafeAreaView style={{flex: 1}}>
+      <ScrollView contentContainerStyle={[{flex: 1}, styles.screenContainer]}>
         <Typography style={styles.titleScreen}>
           Selecione uma categoria
         </Typography>
@@ -135,55 +151,58 @@ const SelectCategoryModal: React.FC = () => {
             const matched = match(category.title, search);
             const parsed = parse(category.title, matched);
             const render = parsed.some(value => value.highlight) || !search;
+            console.log('render', category.title);
 
             return render ? (
-              <Animated.View
-                key={category.id}
-                style={[
-                  styles.categoryContainer,
-                  displayList === 'grid'
-                    ? styles.categoryGridGap
-                    : styles.categoryListGap,
-                ]}
-                entering={ZoomIn.delay(225 * idx)}
-                exiting={ZoomOut.delay(225 * idx)}
-                layout={Layout.delay(225 * idx)}>
-                <View
+              <TouchableOpacity onPress={selectCategory(category)}>
+                <Animated.View
+                  key={category.id}
                   style={[
-                    styles.iconBorder,
-                    {borderColor: category.colorCategory},
-                  ]}>
+                    styles.categoryContainer,
+                    displayList === 'grid'
+                      ? styles.categoryGridGap
+                      : styles.categoryListGap,
+                  ]}
+                  entering={ZoomIn.delay(225 * idx)}
+                  exiting={ZoomOut.delay(225 * idx)}
+                  layout={Layout.delay(225 * idx)}>
                   <View
                     style={[
-                      styles.iconColor,
-                      {
-                        borderRadius: sizeIconColor / 2,
-                        backgroundColor: category.colorCategory,
-                      },
-                    ]}
-                    onLayout={({nativeEvent}) =>
-                      setSizeIconColor(nativeEvent.layout.height)
-                    }
-                  />
-                </View>
-                {parsed.map(value => {
-                  return (
-                    <Typography
-                      key={value.text}
+                      styles.iconBorder,
+                      {borderColor: category.colorCategory},
+                    ]}>
+                    <View
                       style={[
-                        styles.textCategory,
-                        value.highlight && {
-                          color:
-                            theme.palette.type === 'light'
-                              ? theme.palette.secondary.computed
-                              : theme.palette.success.computed,
+                        styles.iconColor,
+                        {
+                          borderRadius: sizeIconColor / 2,
+                          backgroundColor: category.colorCategory,
                         },
-                      ]}>
-                      {value.text}
-                    </Typography>
-                  );
-                })}
-              </Animated.View>
+                      ]}
+                      onLayout={({nativeEvent}) =>
+                        setSizeIconColor(nativeEvent.layout.height)
+                      }
+                    />
+                  </View>
+                  {parsed.map(value => {
+                    return (
+                      <Typography
+                        key={value.text}
+                        style={[
+                          styles.textCategory,
+                          value.highlight && {
+                            color:
+                              theme.palette.type === 'light'
+                                ? theme.palette.secondary.computed
+                                : theme.palette.success.computed,
+                          },
+                        ]}>
+                        {value.text}
+                      </Typography>
+                    );
+                  })}
+                </Animated.View>
+              </TouchableOpacity>
             ) : (
               <></>
             );

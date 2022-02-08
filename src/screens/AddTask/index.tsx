@@ -18,6 +18,7 @@ import {useSnack} from '../../contexts/Snack';
 import {useTheme} from '../../contexts/ThemeProvider';
 import {Theme} from '../../contexts/ThemeProvider/Theme';
 import {Types} from '../../ioc/types';
+import {Category} from '../../modules/categories/models/ICategoryService';
 import {ITaskService} from '../../modules/tasks/models/ITaskService';
 
 const useStyles = (theme: Theme) =>
@@ -47,11 +48,7 @@ const useStyles = (theme: Theme) =>
       padding: widthPercentageToDP(2),
       marginRight: widthPercentageToDP(4),
     },
-    iconColor: {
-      backgroundColor: 'red',
-      width: '100%',
-      height: '100%',
-    },
+    iconColor: {width: '100%', height: '100%'},
     iconBorder: {
       borderColor: 'red',
       borderWidth: 1,
@@ -96,6 +93,7 @@ const AddTaskScreen: React.FC = () => {
   const [sizeIconColor, setSizeIconColor] = useState(0);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
+  const [category, setCategory] = useState<Category | null>(null);
 
   const saveNewTask = useCallback(async () => {
     try {
@@ -156,14 +154,28 @@ const AddTaskScreen: React.FC = () => {
 
         <Fab
           variant="outlined"
-          onPress={() => router.navigate('SelectCategory')}>
-          <View style={styles.iconBorder}>
+          onPress={() =>
+            router.navigate('SelectCategory', {
+              onGoBack: category => setCategory(category),
+            })
+          }>
+          <View
+            style={[styles.iconBorder, {borderColor: category?.colorCategory}]}>
             <View
-              style={[styles.iconColor, {borderRadius: sizeIconColor / 2}]}
+              style={[
+                styles.iconColor,
+                {borderRadius: sizeIconColor / 2},
+                {backgroundColor: category?.colorCategory},
+              ]}
               onLayout={({nativeEvent}) =>
                 setSizeIconColor(nativeEvent.layout.height)
-              }
-            />
+              }>
+              <Icon
+                type="material-community"
+                name="shape"
+                style={{color: theme.palette.primary.computed}}
+              />
+            </View>
           </View>
         </Fab>
       </View>

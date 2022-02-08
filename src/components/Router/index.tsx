@@ -12,7 +12,9 @@ import {
 } from '@react-navigation/native-stack';
 import React from 'react';
 import {View} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {useAuth} from '../../contexts/Auth';
+import {Category} from '../../modules/categories/models/ICategoryService';
 import {AddTaskScreen} from '../../screens/AddTask';
 import {SelectCategoryModal} from '../../screens/AddTask/SelectCategory';
 import {HomeScreen} from '../../screens/Home';
@@ -21,8 +23,8 @@ import {DrawerLeft} from '../DrawerLeft';
 
 export type AppRoutes = {
   Initial: undefined;
-  AddTask: undefined;
-  SelectCategory: undefined;
+  AddTask?: {categoryID?: string; colorCategory?: string};
+  SelectCategory: {onGoBack: (category: Category) => void};
 };
 export type AuthRoutes = {
   Login: undefined;
@@ -92,10 +94,12 @@ const AppNavigator = () => {
 
 export const Router: React.FC = () => {
   return (
-    <NavigationContainer>
-      <View style={{backgroundColor: '#0F1F55', flex: 1}}>
-        <AppNavigator />
-      </View>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <View style={{backgroundColor: '#0F1F55', flex: 1}}>
+          <AppNavigator />
+        </View>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 };
