@@ -151,21 +151,21 @@ const SelectCategoryModal: React.FC = () => {
             const matched = match(category.title, search);
             const parsed = parse(category.title, matched);
             const render = parsed.some(value => value.highlight) || !search;
-            console.log('render', category.title);
 
             return render ? (
-              <TouchableOpacity onPress={selectCategory(category)}>
-                <Animated.View
-                  key={category.id}
-                  style={[
-                    styles.categoryContainer,
-                    displayList === 'grid'
-                      ? styles.categoryGridGap
-                      : styles.categoryListGap,
-                  ]}
-                  entering={ZoomIn.delay(225 * idx)}
-                  exiting={ZoomOut.delay(225 * idx)}
-                  layout={Layout.delay(225 * idx)}>
+              <Animated.View
+                key={category.id}
+                style={[
+                  displayList === 'grid'
+                    ? styles.categoryGridGap
+                    : styles.categoryListGap,
+                ]}
+                entering={ZoomIn.delay(225 * idx)}
+                exiting={ZoomOut.delay(225 * idx)}
+                layout={Layout.delay(225 * idx)}>
+                <TouchableOpacity
+                  style={styles.categoryContainer}
+                  onPress={selectCategory(category)}>
                   <View
                     style={[
                       styles.iconBorder,
@@ -201,8 +201,8 @@ const SelectCategoryModal: React.FC = () => {
                       </Typography>
                     );
                   })}
-                </Animated.View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </Animated.View>
             ) : (
               <></>
             );
