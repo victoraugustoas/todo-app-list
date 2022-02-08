@@ -96,9 +96,10 @@ const AddTaskScreen: React.FC = () => {
   const [category, setCategory] = useState<Category | null>(null);
 
   const saveNewTask = useCallback(async () => {
+    if (!category) return;
     try {
       setLoading(true);
-      await taskService.save({categoryID: 'qwEbM2Y43utdPI3BtQ33', title});
+      await taskService.save({categoryID: category.id, title});
       router.goBack();
     } catch (error) {
       snack.addNotification({
@@ -108,7 +109,7 @@ const AddTaskScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [title]);
+  }, [title, category]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -130,7 +131,6 @@ const AddTaskScreen: React.FC = () => {
           ]}
         />
       </Fab>
-
       <View>
         <TextInput
           placeholder="Digite a tarefa"
@@ -139,7 +139,6 @@ const AddTaskScreen: React.FC = () => {
           onChangeText={text => setTitle(text)}
         />
       </View>
-
       <View style={{flexDirection: 'row'}}>
         <Fab variant="outlined" style={styles.selectDate}>
           <Icon type="feather" name="calendar" style={styles.icon} />
@@ -170,16 +169,19 @@ const AddTaskScreen: React.FC = () => {
               onLayout={({nativeEvent}) =>
                 setSizeIconColor(nativeEvent.layout.height)
               }>
-              <Icon
-                type="material-community"
-                name="shape"
-                style={{color: theme.palette.primary.computed}}
-              />
+              {category ? (
+                <></>
+              ) : (
+                <Icon
+                  type="material-community"
+                  name="shape"
+                  style={{color: theme.palette.primary.computed}}
+                />
+              )}
             </View>
           </View>
         </Fab>
       </View>
-
       <View>
         <Fab
           variant="outlined"

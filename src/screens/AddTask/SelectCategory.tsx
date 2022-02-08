@@ -28,6 +28,10 @@ import {
 
 const useStyles = (theme: Theme) =>
   StyleSheet.create({
+    safeAreaContainer: {
+      flex: 1,
+      backgroundColor: theme.palette.background.default.computed,
+    },
     screenContainer: {
       paddingHorizontal: widthPercentageToDP(5),
       flex: 1,
@@ -116,7 +120,7 @@ const SelectCategoryModal: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={styles.safeAreaContainer}>
       <ScrollView contentContainerStyle={[{flex: 1}, styles.screenContainer]}>
         <Typography style={styles.titleScreen}>
           Selecione uma categoria
