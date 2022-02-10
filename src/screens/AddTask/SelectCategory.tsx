@@ -147,8 +147,8 @@ const CategoryItem: React.FC<CategoryItem> = ({
           ? styles.categoryGridGap
           : styles.categoryListGap,
       ]}
-      entering={ZoomIn}
-      exiting={ZoomOut}
+      entering={ZoomIn.delay(225 * idx)}
+      exiting={ZoomOut.delay(225 * idx)}
       layout={Layout.delay(225 * idx)}>
       <TouchableOpacity onPress={selectCategory}>
         <View style={styles.categoryContainer}>
