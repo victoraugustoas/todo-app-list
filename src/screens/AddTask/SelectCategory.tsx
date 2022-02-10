@@ -2,7 +2,8 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import React, {useCallback, useState} from 'react';
+import debounce from 'lodash.debounce';
+import React, {useCallback, useMemo, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -94,6 +95,99 @@ const useStyles = (theme: Theme) =>
     },
   });
 
+interface CategoryItem {
+  displayList: 'grid' | 'list';
+  index: number;
+  category: Category;
+  textSearch: string;
+  selectCategory: () => void;
+}
+
+const CategoryItem: React.FC<CategoryItem> = ({
+  displayList,
+  index: idx,
+  category,
+  selectCategory,
+  textSearch,
+}) => {
+  const theme = useTheme();
+  const styles = useStyles(theme);
+
+  const [sizeIconColor, setSizeIconColor] = useState(0);
+  const matched = useMemo(
+    () => match(category.title, textSearch),
+    [textSearch],
+  );
+  const parsed = useMemo(() => parse(category.title, matched), [matched]);
+  const firstMatch = useMemo(
+    () =>
+      parsed
+        .filter(value => value.highlight)
+        .map(value => value.text)
+        .join(''),
+    [parsed],
+  );
+  const lastMatch = useMemo(
+    () =>
+      parsed
+        .filter(value => value.highlight === false)
+        .map(value => value.text)
+        .join(''),
+    [parsed],
+  );
+  const render = useMemo(
+    () => firstMatch.length > 0 || !textSearch,
+    [firstMatch, textSearch],
+  );
+
+  return render ? (
+    <Animated.View
+      style={[
+        displayList === 'grid'
+          ? styles.categoryGridGap
+          : styles.categoryListGap,
+      ]}
+      entering={ZoomIn}
+      exiting={ZoomOut}
+      layout={Layout.delay(225 * idx)}>
+      <TouchableOpacity onPress={selectCategory}>
+        <View style={styles.categoryContainer}>
+          <View
+            style={[styles.iconBorder, {borderColor: category.colorCategory}]}>
+            <View
+              style={[
+                styles.iconColor,
+                {
+                  borderRadius: sizeIconColor / 2,
+                  backgroundColor: category.colorCategory,
+                },
+              ]}
+              onLayout={({nativeEvent}) =>
+                setSizeIconColor(nativeEvent.layout.height)
+              }
+            />
+          </View>
+          <Typography
+            style={[
+              styles.textCategory,
+              {
+                color:
+                  theme.palette.type === 'light'
+                    ? theme.palette.secondary.computed
+                    : theme.palette.success.computed,
+              },
+            ]}>
+            {firstMatch}
+          </Typography>
+          <Typography style={styles.textCategory}>{lastMatch}</Typography>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  ) : (
+    <></>
+  );
+};
+
 const SelectCategoryModal: React.FC = () => {
   const iocContext = useIoCContext();
   const theme = useTheme();
@@ -106,7 +200,6 @@ const SelectCategoryModal: React.FC = () => {
     Types.Category.ICategoryService,
   );
 
-  const [sizeIconColor, setSizeIconColor] = useState(0);
   const [search, setSearch] = useState('');
   const [displayList, setDisplayList] = useState<'list' | 'grid'>('grid');
 
@@ -119,6 +212,11 @@ const SelectCategoryModal: React.FC = () => {
     };
   }, []);
 
+  const searchCategory = useMemo(
+    () => debounce((text: string) => setSearch(text), 500),
+    [],
+  );
+
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
       <ScrollView contentContainerStyle={[{flex: 1}, styles.screenContainer]}>
@@ -129,7 +227,7 @@ const SelectCategoryModal: React.FC = () => {
           <TextInput
             placeholder="Procure uma categoria"
             style={[getFontWeight('regular'), styles.inputSearch]}
-            onChangeText={text => setSearch(text)}
+            onChangeText={text => searchCategory(text)}
           />
           <TouchableOpacity
             onPress={() =>
@@ -152,63 +250,15 @@ const SelectCategoryModal: React.FC = () => {
         </View>
         <View style={[{flex: 1}, displayList === 'grid' && styles.gridView]}>
           {fetchCategories.value?.map((category, idx) => {
-            const matched = match(category.title, search);
-            const parsed = parse(category.title, matched);
-            const render = parsed.some(value => value.highlight) || !search;
-
-            return render ? (
-              <Animated.View
+            return (
+              <CategoryItem
+                category={category}
+                index={idx}
+                displayList={displayList}
+                textSearch={search}
                 key={category.id}
-                style={[
-                  displayList === 'grid'
-                    ? styles.categoryGridGap
-                    : styles.categoryListGap,
-                ]}
-                entering={ZoomIn.delay(225 * idx)}
-                exiting={ZoomOut.delay(225 * idx)}
-                layout={Layout.delay(225 * idx)}>
-                <TouchableOpacity
-                  style={styles.categoryContainer}
-                  onPress={selectCategory(category)}>
-                  <View
-                    style={[
-                      styles.iconBorder,
-                      {borderColor: category.colorCategory},
-                    ]}>
-                    <View
-                      style={[
-                        styles.iconColor,
-                        {
-                          borderRadius: sizeIconColor / 2,
-                          backgroundColor: category.colorCategory,
-                        },
-                      ]}
-                      onLayout={({nativeEvent}) =>
-                        setSizeIconColor(nativeEvent.layout.height)
-                      }
-                    />
-                  </View>
-                  {parsed.map(value => {
-                    return (
-                      <Typography
-                        key={value.text}
-                        style={[
-                          styles.textCategory,
-                          value.highlight && {
-                            color:
-                              theme.palette.type === 'light'
-                                ? theme.palette.secondary.computed
-                                : theme.palette.success.computed,
-                          },
-                        ]}>
-                        {value.text}
-                      </Typography>
-                    );
-                  })}
-                </TouchableOpacity>
-              </Animated.View>
-            ) : (
-              <></>
+                selectCategory={selectCategory(category)}
+              />
             );
           })}
         </View>
