@@ -119,26 +119,11 @@ const CategoryItem: React.FC<CategoryItem> = ({
     [textSearch],
   );
   const parsed = useMemo(() => parse(category.title, matched), [matched]);
-  const firstMatch = useMemo(
-    () =>
-      parsed
-        .filter(value => value.highlight)
-        .map(value => value.text)
-        .join(''),
-    [parsed],
-  );
-  const lastMatch = useMemo(
-    () =>
-      parsed
-        .filter(value => value.highlight === false)
-        .map(value => value.text)
-        .join(''),
-    [parsed],
-  );
   const render = useMemo(
-    () => firstMatch.length > 0 || !textSearch,
-    [firstMatch, textSearch],
+    () => parsed.length > 1 || !textSearch,
+    [textSearch, parsed],
   );
+  console.log(matched);
 
   return render ? (
     <Animated.View
@@ -167,19 +152,25 @@ const CategoryItem: React.FC<CategoryItem> = ({
               }
             />
           </View>
-          <Typography
-            style={[
-              styles.textCategory,
-              {
-                color:
-                  theme.palette.type === 'light'
-                    ? theme.palette.secondary.computed
-                    : theme.palette.success.computed,
-              },
-            ]}>
-            {firstMatch}
-          </Typography>
-          <Typography style={styles.textCategory}>{lastMatch}</Typography>
+          {Array.from(category.title).map((value, idx) => {
+            return (
+              <Typography
+                key={idx}
+                style={[
+                  styles.textCategory,
+                  matched.find(arr => arr[0] <= idx && idx < arr[1])
+                    ? {
+                        color:
+                          theme.palette.type === 'light'
+                            ? theme.palette.secondary.computed
+                            : theme.palette.success.computed,
+                      }
+                    : {},
+                ]}>
+                {value}
+              </Typography>
+            );
+          })}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -213,7 +204,7 @@ const SelectCategoryModal: React.FC = () => {
   }, []);
 
   const searchCategory = useMemo(
-    () => debounce((text: string) => setSearch(text), 500),
+    () => debounce((text: string) => setSearch(text), 350),
     [],
   );
 
