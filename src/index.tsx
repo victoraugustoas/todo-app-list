@@ -1,11 +1,13 @@
 import React from 'react';
-import {useColorScheme} from 'react-native';
+import {LogBox, useColorScheme} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Router} from './components/Router';
 import {AuthProvider} from './contexts/Auth';
 import {IoCProvider} from './contexts/IoCContext';
 import {SnackProvider} from './contexts/Snack';
 import {ThemeProvider} from './contexts/ThemeProvider';
+
+LogBox.ignoreLogs(['Setting a timer']);
 
 const AppContainer: React.FC = () => {
   const color = useColorScheme();

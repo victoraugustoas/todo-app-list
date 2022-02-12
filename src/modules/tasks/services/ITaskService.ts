@@ -1,9 +1,9 @@
-import {Auth, Unsubscribe} from 'firebase/auth';
+import {Auth} from 'firebase/auth';
 import {
   addDoc,
   collection,
   Firestore,
-  onSnapshot,
+  getDocs,
   orderBy,
   query,
   serverTimestamp,
@@ -12,7 +12,12 @@ import {
 import {inject, injectable} from 'inversify';
 import {Types} from '../../../ioc/types';
 import {ICategoryService} from '../../categories/models/ICategoryService';
-import {IParamTask, ITaskService, Task} from '../models/ITaskService';
+import {
+  IParamListTasks,
+  IParamTask,
+  ITaskService,
+  Task,
+} from '../models/ITaskService';
 
 @injectable()
 export class TaskService implements ITaskService {
@@ -37,34 +42,35 @@ export class TaskService implements ITaskService {
     await addDoc(collection(this.fireStore, 'tasks'), this.mountTask(data));
   }
 
-  listTasks(data: {setTasks: (tasks: Task[]) => void}): Unsubscribe {
+  async listTasks(data: IParamListTasks): Promise<Task[]> {
     const q = query(
       collection(this.fireStore, 'tasks'),
       orderBy('createdAt', 'desc'),
       where('userID', '==', this.auth.currentUser?.uid),
+      ...(data.filter?.category
+        ? [where('categoryID', '==', data.filter.category)]
+        : []),
     );
 
-    const unsubscribe = onSnapshot(q, async querySnapshot => {
-      const tasks: Task[] = [];
-      querySnapshot.forEach(doc => {
-        tasks.push({
-          ...(doc.data() as Task),
-          category: {id: doc.data().categoryID, colorCategory: '', title: ''},
-          id: doc.id,
-        });
-      });
-
-      const hidrate = await Promise.all(
-        tasks.map(async task => {
-          const category = await this.categoryService.getCategory({
-            categoryID: task.category.id,
-          });
-          return {...task, category};
-        }),
-      );
-
-      data.setTasks(hidrate);
+    const docs = await getDocs(q);
+    const documents: Task[] = [];
+    docs.forEach(doc => {
+      const task: Task = {
+        ...(doc.data() as Task),
+        id: doc.id,
+      };
+      documents.push(task);
     });
-    return unsubscribe;
+
+    const hidrate = await Promise.all(
+      documents.map(async task => {
+        const category = await this.categoryService.getCategory({
+          categoryID: task.categoryID,
+        });
+        return {...task, category};
+      }),
+    );
+
+    return hidrate;
   }
 }

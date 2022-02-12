@@ -65,6 +65,7 @@ export function useFetchData<T>(
         setErrorLoading(false);
       }
     } catch (error) {
+      console.error("🚀 ~ file: FetchData.ts ~ line 68 ~ fetch ~ error", error)
       setErrorLoading(true);
     } finally {
       setLoading(false);
