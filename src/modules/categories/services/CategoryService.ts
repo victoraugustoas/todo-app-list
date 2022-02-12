@@ -6,11 +6,16 @@ import {
   getDoc,
   getDocs,
   query,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import {inject, injectable} from 'inversify';
 import {Types} from '../../../ioc/types';
-import {Category, ICategoryService} from '../models/ICategoryService';
+import {
+  Category,
+  ICategoryService,
+  IParamsUpdateCategory,
+} from '../models/ICategoryService';
 
 @injectable()
 export class CategoryService implements ICategoryService {
@@ -23,7 +28,6 @@ export class CategoryService implements ICategoryService {
     const category = await getDoc(
       doc(this.fireStore, 'categories', data.categoryID),
     );
-
     return {...(category.data() as Category), id: category.id};
   }
 
@@ -44,5 +48,10 @@ export class CategoryService implements ICategoryService {
     });
 
     return documents;
+  }
+
+  async update(categoryID: string, data: IParamsUpdateCategory): Promise<void> {
+    const document = doc(this.fireStore, 'categories', categoryID);
+    await updateDoc(document, data);
   }
 }

@@ -1,5 +1,5 @@
 import debounce from 'lodash.debounce';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 export interface FetchData<T> {
   loading: boolean;
@@ -7,6 +7,7 @@ export interface FetchData<T> {
   firstLoading: boolean;
   value: T | null;
   fetch: () => Promise<void>;
+  setValue: React.Dispatch<React.SetStateAction<T | null>>;
   resetState: () => void;
 }
 
@@ -16,7 +17,7 @@ export function useFetchData<T>(
     useEffectDeps?: any[];
     useCallbackDeps?: any[];
     resetValueChanges?: any[];
-    appendValue?: { fieldToAppend: string };
+    appendValue?: {fieldToAppend: string};
     simulateError?: {
       isValueNull?: boolean;
       isError?: boolean;
@@ -33,12 +34,12 @@ export function useFetchData<T>(
       setLoading(true);
       const valueFetched = await Promise.resolve(callback());
       if (options && options.appendValue) {
-        const { fieldToAppend } = options.appendValue;
+        const {fieldToAppend} = options.appendValue;
         if (options?.simulateError && options.simulateError.isValueNull) {
           setValue(null);
         } else {
           // @ts-ignore
-          setValue((oldState) =>
+          setValue(oldState =>
             oldState
               ? {
                   ...valueFetched,
@@ -65,7 +66,7 @@ export function useFetchData<T>(
         setErrorLoading(false);
       }
     } catch (error) {
-      console.error("🚀 ~ file: FetchData.ts ~ line 68 ~ fetch ~ error", error)
+      console.error('🚀 ~ file: FetchData.ts ~ line 68 ~ fetch ~ error', error);
       setErrorLoading(true);
     } finally {
       setLoading(false);
@@ -106,5 +107,13 @@ export function useFetchData<T>(
     }, [...(options.resetValueChanges ? options.resetValueChanges : [])]);
   }
 
-  return { loading, errorLoading, value, firstLoading, fetch, resetState };
+  return {
+    loading,
+    errorLoading,
+    value,
+    firstLoading,
+    fetch,
+    resetState,
+    setValue,
+  };
 }

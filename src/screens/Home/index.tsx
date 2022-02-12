@@ -1,8 +1,6 @@
-import {deleteDoc, doc, serverTimestamp, updateDoc} from 'firebase/firestore';
 import React, {useCallback, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {fireStore} from '../../../firebase';
 import {CardCategory} from '../../components/CardCategory';
 import {CardTask} from '../../components/CardTask';
 import {Layout} from '../../components/Layout';
@@ -25,7 +23,7 @@ const HomeScreen: React.FC = () => {
 
   const deleteTask = useCallback(async (task: Task) => {
     try {
-      await deleteDoc(doc(fireStore, 'tasks', task.id));
+      await taskService.delete(task.id);
     } catch (error) {
       console.log('🚀 ~ file: index.tsx ~ line 44 ~ deleteTask ~ error', error);
     } finally {
@@ -34,11 +32,12 @@ const HomeScreen: React.FC = () => {
 
   const completeTask = useCallback(async (task: Task) => {
     try {
-      await updateDoc(doc(fireStore, 'tasks', task.id), {
-        selected: !Boolean(task.selected),
-        completedAt: serverTimestamp(),
-      });
+      await taskService.selectedOrNotTask(task.id);
     } catch (error) {
+      console.log(
+        '🚀 ~ file: index.tsx ~ line 37 ~ completeTask ~ error',
+        error,
+      );
     } finally {
     }
   }, []);
@@ -60,13 +59,11 @@ const HomeScreen: React.FC = () => {
           renderItem={({item}) => (
             <View key={item.id} style={{marginRight: widthPercentageToDP(2)}}>
               <CardCategory
-                onPress={() => {
-                  setCategoryID(item.id);
-                }}
+                onPress={() => setCategoryID(item.id)}
                 title={item.title}
-                numberOfTasks={5}
+                numberOfTasks={item.numberOfTasks}
                 colorCategory={item.colorCategory}
-                totalTasksConcluded={3}
+                totalTasksConcluded={item.totalTasksConcluded}
               />
             </View>
           )}
@@ -85,7 +82,20 @@ const HomeScreen: React.FC = () => {
                 style={{marginVertical: widthPercentageToDP(1.2)}}
                 title={task.title}
                 selected={task.selected}
-                onPress={() => completeTask(task)}
+                onPress={() => {
+                  fetchTasks.setValue(value => {
+                    const state = [...value!];
+                    const idx = state.findIndex(e => e.id === task.id);
+                    if (idx > -1) {
+                      state[idx] = {
+                        ...state[idx],
+                        selected: !state[idx].selected,
+                      };
+                    }
+                    return state;
+                  });
+                  completeTask(task);
+                }}
                 onDimiss={() => deleteTask(task)}
                 colorTask={task.category.colorCategory}
               />

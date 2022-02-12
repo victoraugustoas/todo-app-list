@@ -22,4 +22,7 @@ export interface IParamListTasks {
 export interface ITaskService {
   save(data: IParamTask): Promise<void>;
   listTasks(data: IParamListTasks): Promise<Task[]>;
+  delete(taskID: string): Promise<void>;
+  getTask(taskID: string): Promise<Task>;
+  selectedOrNotTask(taskID: string): Promise<void>;
 }
