@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import {Formik} from 'formik';
 import React from 'react';
 import {
@@ -41,7 +42,12 @@ const LoginScreen: React.FC = () => {
   const styles = useStyles(theme);
   const auth = useAuth();
 
-  const initialValues = {email: '', password: ''};
+  const initialValues = {
+    email: Constants.manifest?.extra?.user ? Constants.manifest.extra.user : '',
+    password: Constants.manifest?.extra?.passwd
+      ? Constants.manifest.extra.passwd
+      : '',
+  };
 
   return (
     <Formik initialValues={initialValues} onSubmit={values => {}}>
