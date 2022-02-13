@@ -1,3 +1,6 @@
+import {Unsubscribe} from 'firebase/firestore';
+import {ObserverList} from '../../tasks/models/ITaskService';
+
 export interface Category {
   title: string;
   colorCategory: string;
@@ -8,9 +11,18 @@ export interface Category {
 }
 
 export interface IParamsUpdateCategory extends Partial<Category> {}
+export interface IParamsObserverListCategory extends ObserverList<Category[]> {}
 
 export interface ICategoryService {
   list(): Promise<Category[]>;
+  observerList(data: IParamsObserverListCategory): Unsubscribe;
   getCategory(data: {categoryID: string}): Promise<Category>;
   update(categoryID: string, data: IParamsUpdateCategory): Promise<void>;
+  incrementCounters(
+    categoryID: string,
+    data: {
+      numberOfTasks?: number;
+      totalTasksConcluded?: number;
+    },
+  ): Promise<void>;
 }

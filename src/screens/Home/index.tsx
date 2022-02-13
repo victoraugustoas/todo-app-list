@@ -1,16 +1,21 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {CardCategory} from '../../components/CardCategory';
 import {CardTask} from '../../components/CardTask';
 import {Layout} from '../../components/Layout';
 import {useIoCContext} from '../../contexts/IoCContext';
-import {useFetchData} from '../../hooks/FetchData';
 import {Types} from '../../ioc/types';
-import {ICategoryService} from '../../modules/categories/models/ICategoryService';
+import {
+  Category,
+  ICategoryService,
+} from '../../modules/categories/models/ICategoryService';
 import {ITaskService, Task} from '../../modules/tasks/models/ITaskService';
 
 const HomeScreen: React.FC = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState<boolean>(true);
   const [categoryID, setCategoryID] = useState<string | undefined>(undefined);
   const iocContext = useIoCContext();
 
@@ -42,10 +47,15 @@ const HomeScreen: React.FC = () => {
     }
   }, []);
 
-  const fetchCategories = useFetchData(() => categoryService.list());
-  const fetchTasks = useFetchData(
-    () => taskService.listTasks({filter: {category: categoryID}}),
-    {useCallbackDeps: [categoryID], useEffectDeps: [categoryID]},
+  useEffect(() => categoryService.observerList({save: setCategories}), []);
+
+  useEffect(
+    () =>
+      taskService.observerListTasks({
+        save: setTasks,
+        setLoading: setLoadingTasks,
+      }),
+    [],
   );
 
   return (
@@ -54,7 +64,7 @@ const HomeScreen: React.FC = () => {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={fetchCategories.value}
+          data={categories}
           contentContainerStyle={{padding: widthPercentageToDP(5)}}
           renderItem={({item}) => (
             <View key={item.id} style={{marginRight: widthPercentageToDP(2)}}>
@@ -72,8 +82,9 @@ const HomeScreen: React.FC = () => {
       </View>
       <View style={{marginHorizontal: widthPercentageToDP(3), flex: 1}}>
         <FlatList
-          data={fetchTasks.value}
+          data={tasks}
           keyExtractor={task => task.id}
+          refreshing={loadingTasks}
           renderItem={({item: task, index}) => {
             return (
               <CardTask
@@ -82,20 +93,7 @@ const HomeScreen: React.FC = () => {
                 style={{marginVertical: widthPercentageToDP(1.2)}}
                 title={task.title}
                 selected={task.selected}
-                onPress={() => {
-                  fetchTasks.setValue(value => {
-                    const state = [...value!];
-                    const idx = state.findIndex(e => e.id === task.id);
-                    if (idx > -1) {
-                      state[idx] = {
-                        ...state[idx],
-                        selected: !state[idx].selected,
-                      };
-                    }
-                    return state;
-                  });
-                  completeTask(task);
-                }}
+                onPress={() => completeTask(task)}
                 onDimiss={() => deleteTask(task)}
                 colorTask={task.category.colorCategory}
               />
