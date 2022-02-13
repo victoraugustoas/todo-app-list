@@ -47,5 +47,6 @@ export default {
       user: process.env.EMAIL,
       passwd: process.env.PASSWORD,
     },
+    plugins: ['@react-native-firebase/app'],
   },
 };

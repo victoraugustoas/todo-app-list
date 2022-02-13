@@ -1,9 +1,5 @@
-import {
-  reauthenticateWithCredential,
-  SignInMethod,
-  signInWithEmailAndPassword,
-  User,
-} from 'firebase/auth';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import {User} from 'firebase/auth';
 import React, {
   createContext,
   useCallback,
@@ -11,11 +7,10 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import {auth} from '../../../firebase';
 import {UserCredentials} from './Auth';
 
 export interface AuthContext {
-  user: User | null;
+  user: FirebaseAuthTypes.User | null;
   signInState: {
     loadingSignIn: boolean;
     errorLoadingSignIn: boolean;
@@ -26,19 +21,19 @@ export interface AuthContext {
 export const AuthContext = createContext({} as AuthContext);
 
 export const AuthProvider: React.FC = ({children}) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [loadingSignIn, setLoadingSignIn] = useState(false);
   const [errorLoadingSignIn, setErrorLoadingSignIn] = useState(false);
 
   useEffect(() => {
-    const unsubscriber = auth.onAuthStateChanged(setUser);
+    const unsubscriber = auth().onAuthStateChanged(user => setUser(user));
     return () => unsubscriber();
   }, []);
 
   const signIn = useCallback(async (data: UserCredentials) => {
     try {
       setLoadingSignIn(true);
-      await signInWithEmailAndPassword(auth, data.email, data.password);
+      await auth().signInWithEmailAndPassword(data.email, data.password);
       setErrorLoadingSignIn(false);
     } catch (error) {
       setErrorLoadingSignIn(true);
