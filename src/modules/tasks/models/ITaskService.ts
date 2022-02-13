@@ -1,4 +1,3 @@
-import {Unsubscribe} from 'firebase/firestore';
 import React from 'react';
 import {Category} from '../../categories/models/ICategoryService';
 
@@ -30,6 +29,8 @@ export interface ObserverList<T> {
 export interface IParamObserverListTasks
   extends IParamListTasks,
     ObserverList<Task[]> {}
+
+export type Unsubscribe = () => void;
 
 export interface ITaskService {
   save(data: IParamTask): Promise<void>;

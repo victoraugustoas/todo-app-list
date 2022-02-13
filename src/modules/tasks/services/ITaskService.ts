@@ -1,20 +1,5 @@
-import {Auth} from 'firebase/auth';
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  Firestore,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  Unsubscribe,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import {inject, injectable} from 'inversify';
 import {Types} from '../../../ioc/types';
 import {ICategoryService} from '../../categories/models/ICategoryService';
@@ -24,23 +9,20 @@ import {
   IParamTask,
   ITaskService,
   Task,
+  Unsubscribe,
 } from '../models/ITaskService';
 
 @injectable()
 export class TaskService implements ITaskService {
-  @inject(Types.FirebaseDB)
-  private fireStore!: Firestore;
-  @inject(Types.FirebaseAuth)
-  private auth!: Auth;
   @inject(Types.Category.ICategoryService)
   private categoryService!: ICategoryService;
 
   private mountTask(data: IParamTask) {
-    if (!this.auth.currentUser) throw new Error('User not logged');
+    if (!auth().currentUser) throw new Error('User not logged');
     return {
       ...data,
-      userID: this.auth.currentUser.uid,
-      createdAt: serverTimestamp() as unknown as Date,
+      userID: auth().currentUser!.uid,
+      createdAt: firestore.FieldValue.serverTimestamp(),
       selected: false,
     };
   }
@@ -50,23 +32,24 @@ export class TaskService implements ITaskService {
     await this.categoryService.incrementCounters(data.categoryID, {
       numberOfTasks: 1,
     });
+
     //save task
-    await addDoc(collection(this.fireStore, 'tasks'), this.mountTask(data));
+    await firestore().collection('tasks').add(this.mountTask(data));
   }
 
   async listTasks(data: IParamListTasks): Promise<Task[]> {
-    const q = query(
-      collection(this.fireStore, 'tasks'),
-      orderBy('createdAt', 'desc'),
-      where('userID', '==', this.auth.currentUser?.uid),
-      ...(data.filter?.category
-        ? [where('categoryID', '==', data.filter.category)]
-        : []),
-    );
+    const q = firestore()
+      .collection('tasks')
+      .orderBy('createdAt', 'desc')
+      .where('userID', '==', auth().currentUser?.uid);
 
-    const docs = await getDocs(q);
+    if (data.filter?.category) {
+      q.where('categoryID', '==', data.filter.category);
+    }
+
+    const snapshot = await q.get();
     const documents: Task[] = [];
-    docs.forEach(doc => {
+    snapshot.forEach(doc => {
       const task: Task = {
         ...(doc.data() as Task),
         id: doc.id,
@@ -82,18 +65,21 @@ export class TaskService implements ITaskService {
         return {...task, category};
       }),
     );
+
     return hidrate;
   }
 
   observerListTasks(data: IParamObserverListTasks): Unsubscribe {
-    const q = query(
-      collection(this.fireStore, 'tasks'),
-      orderBy('createdAt', 'desc'),
-      where('userID', '==', this.auth.currentUser?.uid),
-    );
+    const q = firestore()
+      .collection('tasks')
+      .orderBy('createdAt', 'desc')
+      .where('userID', '==', auth().currentUser?.uid);
 
-    const unsubscribe = onSnapshot(
-      q,
+    if (data.filter?.category) {
+      q.where('categoryID', '==', data.filter.category);
+    }
+
+    const unsubscribe = q.onSnapshot(
       async querySnapshot => {
         data.setLoading && data.setLoading(true);
         const tasks: Task[] = [];
@@ -125,7 +111,7 @@ export class TaskService implements ITaskService {
   }
 
   async getTask(taskID: string): Promise<Task> {
-    const task = await getDoc(doc(this.fireStore, 'tasks', taskID));
+    const task = await firestore().collection('tasks').doc(taskID).get();
 
     const category = await this.categoryService.getCategory({
       categoryID: (task.data() as Task).categoryID,
@@ -146,7 +132,7 @@ export class TaskService implements ITaskService {
       totalTasksConcluded: task.selected ? -1 : 0,
     });
 
-    await deleteDoc(doc(this.fireStore, 'tasks', taskID));
+    firestore().collection('tasks').doc(taskID).delete();
   }
 
   async selectedOrNotTask(taskID: string): Promise<void> {
@@ -157,9 +143,12 @@ export class TaskService implements ITaskService {
       totalTasksConcluded: !Boolean(task.selected) ? 1 : -1,
     });
 
-    await updateDoc(doc(this.fireStore, 'tasks', task.id), {
-      selected: !Boolean(task.selected),
-      completedAt: serverTimestamp(),
-    });
+    firestore()
+      .collection('tasks')
+      .doc(taskID)
+      .update({
+        selected: !Boolean(task.selected),
+        completedAt: firestore.FieldValue.serverTimestamp(),
+      });
   }
 }
