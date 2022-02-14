@@ -15,7 +15,7 @@ export class CategoryService implements ICategoryService {
     const category = await firestore()
       .collection('categories')
       .doc(data.categoryID)
-      .get();
+      .get({source: 'cache'});
 
     return {...(category.data() as Category), id: category.id};
   }
@@ -66,32 +66,5 @@ export class CategoryService implements ICategoryService {
       },
     );
     return unsubscribe;
-  }
-
-  incrementCounters(
-    categoryID: string,
-    data: {
-      numberOfTasks?: number | undefined;
-      totalTasksConcluded?: number | undefined;
-    },
-  ): Promise<void> {
-    const add = (a: number, b?: number) => {
-      if (b) {
-        return a + b < 0 ? 0 : a + b;
-      }
-      return a;
-    };
-
-    return firestore().runTransaction(async transaction => {
-      const docRef = firestore().collection('categories').doc(categoryID);
-      const category = (await transaction.get(docRef)).data() as Category;
-      transaction.update(docRef, {
-        numberOfTasks: add(category.numberOfTasks, data.numberOfTasks),
-        totalTasksConcluded: add(
-          category.totalTasksConcluded,
-          data.totalTasksConcluded,
-        ),
-      } as Partial<Category>);
-    });
   }
 }

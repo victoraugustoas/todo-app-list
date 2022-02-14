@@ -28,23 +28,18 @@ export class TaskService implements ITaskService {
   }
 
   async save(data: IParamTask): Promise<void> {
-    // update category with new task
-    await this.categoryService.incrementCounters(data.categoryID, {
-      numberOfTasks: 1,
-    });
-
     //save task
     await firestore().collection('tasks').add(this.mountTask(data));
   }
 
   async listTasks(data: IParamListTasks): Promise<Task[]> {
-    const q = firestore()
+    let q = firestore()
       .collection('tasks')
       .orderBy('createdAt', 'desc')
       .where('userID', '==', auth().currentUser?.uid);
 
     if (data.filter?.category) {
-      q.where('categoryID', '==', data.filter.category);
+      q = q.where('categoryID', '==', data.filter.category);
     }
 
     const snapshot = await q.get();
@@ -70,13 +65,13 @@ export class TaskService implements ITaskService {
   }
 
   observerListTasks(data: IParamObserverListTasks): Unsubscribe {
-    const q = firestore()
+    let q = firestore()
       .collection('tasks')
       .orderBy('createdAt', 'desc')
       .where('userID', '==', auth().currentUser?.uid);
 
     if (data.filter?.category) {
-      q.where('categoryID', '==', data.filter.category);
+      q = q.where('categoryID', '==', data.filter.category);
     }
 
     const unsubscribe = q.onSnapshot(
@@ -111,7 +106,10 @@ export class TaskService implements ITaskService {
   }
 
   async getTask(taskID: string): Promise<Task> {
-    const task = await firestore().collection('tasks').doc(taskID).get();
+    const task = await firestore()
+      .collection('tasks')
+      .doc(taskID)
+      .get({source: 'cache'});
 
     const category = await this.categoryService.getCategory({
       categoryID: (task.data() as Task).categoryID,
@@ -125,30 +123,21 @@ export class TaskService implements ITaskService {
 
   async delete(taskID: string): Promise<void> {
     const task = await this.getTask(taskID);
-
-    // update category
-    await this.categoryService.incrementCounters(task.categoryID, {
-      numberOfTasks: -1,
-      totalTasksConcluded: task.selected ? -1 : 0,
-    });
-
-    firestore().collection('tasks').doc(taskID).delete();
+    await firestore().collection('tasks').doc(taskID).delete();
   }
 
   async selectedOrNotTask(taskID: string): Promise<void> {
     const task = await this.getTask(taskID);
-
-    // update category
-    await this.categoryService.incrementCounters(task.categoryID, {
-      totalTasksConcluded: !Boolean(task.selected) ? 1 : -1,
-    });
 
     firestore()
       .collection('tasks')
       .doc(taskID)
       .update({
         selected: !Boolean(task.selected),
-        completedAt: firestore.FieldValue.serverTimestamp(),
+        completedAt:
+          !Boolean(task.selected) === false
+            ? null
+            : firestore.FieldValue.serverTimestamp(),
       });
   }
 }

@@ -54,8 +54,9 @@ const HomeScreen: React.FC = () => {
       taskService.observerListTasks({
         save: setTasks,
         setLoading: setLoadingTasks,
+        filter: {category: categoryID},
       }),
-    [],
+    [categoryID, taskService],
   );
 
   return (
