@@ -7,8 +7,14 @@
       "developmentClient": true,
       "distribution": "internal"
     },
-    "preview": {
-      "distribution": "internal"
+    "preview-prod": {
+      "distribution": "internal",
+      "extends": "production",
+      "releaseChannel": "preview"
+    },
+    "preview-dev": {
+      "distribution": "internal",
+      "developmentClient": true
     },
     "production": {}
   },
