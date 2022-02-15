@@ -1,5 +1,4 @@
-import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
-import {User} from 'firebase/auth';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import React, {
   createContext,
   useCallback,
@@ -7,7 +6,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import {UserCredentials} from './Auth';
+import { UserCredentials } from './Auth';
 
 export interface AuthContext {
   user: FirebaseAuthTypes.User | null;
@@ -16,14 +15,22 @@ export interface AuthContext {
     errorLoadingSignIn: boolean;
     signIn: (data: UserCredentials) => void;
   };
+  signOutState: {
+    loadingSignOut: boolean;
+    errorLoadingSignOut: boolean;
+    signInOut: () => void;
+  };
 }
 
 export const AuthContext = createContext({} as AuthContext);
 
-export const AuthProvider: React.FC = ({children}) => {
+export const AuthProvider: React.FC = ({ children }) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [loadingSignIn, setLoadingSignIn] = useState(false);
   const [errorLoadingSignIn, setErrorLoadingSignIn] = useState(false);
+
+  const [loadingSignOut, setLoadingSignOut] = useState(false);
+  const [errorLoadingSignOut, setErrorLoadingSignOut] = useState(false);
 
   useEffect(() => {
     const unsubscriber = auth().onAuthStateChanged(user => setUser(user));
@@ -42,16 +49,26 @@ export const AuthProvider: React.FC = ({children}) => {
     }
   }, []);
 
+  const signInOut = useCallback(async () => {
+    try {
+      setLoadingSignOut(true);
+      await auth().signOut();
+      setErrorLoadingSignOut(false);
+    } catch (error) {
+      setErrorLoadingSignOut(true);
+    } finally {
+      setLoadingSignOut(false);
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        signInState: {
-          signIn,
-          errorLoadingSignIn,
-          loadingSignIn,
-        },
-      }}>
+        signInState: { signIn, errorLoadingSignIn, loadingSignIn },
+        signOutState: { errorLoadingSignOut, loadingSignOut, signInOut },
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
