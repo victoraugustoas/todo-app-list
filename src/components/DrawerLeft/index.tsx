@@ -2,6 +2,7 @@ import {
   DrawerContentComponentProps,
   useDrawerStatus,
 } from '@react-navigation/drawer';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -14,13 +15,14 @@ import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import { appRoutes } from '../../config/routes';
+import { drawerRoutes } from '../../config/routes';
 import { useAuth } from '../../contexts/Auth';
 import { useTheme } from '../../contexts/ThemeProvider';
 import { Theme } from '../../contexts/ThemeProvider/Theme';
 import { Avatar } from '../Avatar';
 import { Fab } from '../Fab';
 import { Icon } from '../Icon';
+import { NavigationProps } from '../Router';
 import { Typography } from '../Typography';
 import { LinkDrawer } from './LinkDrawer';
 
@@ -53,6 +55,7 @@ const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
   const username = 'Victor Augusto Andrade Silva'.split(' ').slice(0, 2);
   const drawerStatus = useDrawerStatus();
   const translateXInitial = -widthPercentageToDP(10);
+  const navigation = useNavigation<NavigationProps>();
   const theme = useTheme();
   const styles = useStyles(theme);
   const auth = useAuth();
@@ -111,7 +114,7 @@ const DrawerLeft: React.FC<DrawerContentComponentProps> = props => {
         </View>
 
         {Object.values(props.descriptors).map(route => {
-          const routeConfig = Object.values(appRoutes).find(
+          const routeConfig = Object.values(drawerRoutes).find(
             routeConfig => routeConfig.link === route.route.name,
           )!;
 
