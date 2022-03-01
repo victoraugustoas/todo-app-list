@@ -1,9 +1,9 @@
-import React, {createContext, useContext} from 'react';
-import {createTheme, Theme, ThemeOptions} from './Theme';
+import React, { createContext, useContext } from 'react';
+import { createTheme, Theme, ThemeOptions } from './Theme';
 
 export const ThemeContext = createContext({} as Theme);
 
-export const ThemeProvider: React.FC<{theme?: ThemeOptions}> = ({
+export const ThemeProvider: React.FC<{ theme?: ThemeOptions }> = ({
   children,
   theme,
 }) => {

@@ -1,19 +1,19 @@
-import {useDrawerStatus} from '@react-navigation/drawer';
-import {useNavigation} from '@react-navigation/native';
+import { useDrawerStatus } from '@react-navigation/drawer';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import {StyleSheet, TouchableWithoutFeedback, View} from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
 } from 'react-native-reanimated';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/Feather';
-import {useTheme} from '../../contexts/ThemeProvider';
-import {Theme} from '../../contexts/ThemeProvider/Theme';
-import {Header} from '../Header';
-import {NavigationProps} from '../Router';
+import { useTheme } from '../../contexts/ThemeProvider';
+import { Theme } from '../../contexts/ThemeProvider/Theme';
+import { Header } from '../Header';
+import { NavigationProps } from '../Router';
 
 const useStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -42,14 +42,20 @@ const useStyles = (theme: Theme) =>
 
       zIndex: 15,
     },
-    icon: {color: '#fff', fontSize: widthPercentageToDP(6)},
+    icon: { color: '#fff', fontSize: widthPercentageToDP(6) },
+    marginsEnabled: { paddingHorizontal: widthPercentageToDP(3) },
   });
 
 export interface LayoutProps {
   showAddButton?: boolean;
+  enableMargins?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({showAddButton, children}) => {
+const Layout: React.FC<LayoutProps> = ({
+  showAddButton,
+  enableMargins,
+  children,
+}) => {
   const theme = useTheme();
   const styles = useStyles(theme);
   const drawerStatus = useDrawerStatus();
@@ -65,7 +71,7 @@ const Layout: React.FC<LayoutProps> = ({showAddButton, children}) => {
   });
 
   const animatedStyles = useAnimatedStyle(() => ({
-    transform: [{scale: interpolate(drawerProgress.value, [0, 1], [1, 0.8])}],
+    transform: [{ scale: interpolate(drawerProgress.value, [0, 1], [1, 0.8]) }],
     borderRadius: interpolate(drawerProgress.value, [0, 1], [0, borderRadius]),
   }));
 
@@ -76,7 +82,8 @@ const Layout: React.FC<LayoutProps> = ({showAddButton, children}) => {
         <TouchableWithoutFeedback
           onPress={() => {
             router.navigate('AddTask');
-          }}>
+          }}
+        >
           <View style={styles.buttonAdd}>
             <Icon name="plus" style={styles.icon} />
           </View>
@@ -84,9 +91,11 @@ const Layout: React.FC<LayoutProps> = ({showAddButton, children}) => {
       ) : (
         <></>
       )}
-      {children}
+      <View style={[enableMargins && styles.marginsEnabled, { flex: 1 }]}>
+        {children}
+      </View>
     </Animated.View>
   );
 };
 
-export {Layout};
+export { Layout };
